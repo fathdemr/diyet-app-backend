@@ -1,0 +1,88 @@
+# =========================
+# Java
+# =========================
+*.class
+*.log
+
+# Compiled output
+target/
+out/
+build/
+
+# =========================
+# Gradle
+# =========================
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# =========================
+# IntelliJ IDEA
+# =========================
+.idea/
+*.iws
+*.iml
+*.ipr
+*.run.xml
+
+# =========================
+# Eclipse / NetBeans
+# =========================
+.classpath
+.project
+.settings/
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs & temp
+# =========================
+*.tmp
+*.swp
+*.hprof
+logs/
+
+# =========================
+# Environment & secrets
+# =========================
+.env
+*.env
+
+# =========================
+# Spring Boot — local config
+# =========================
+application-local.yml
+application-local.properties
+application-dev.yml
+application-prod.yml
+
+# =========================
+# RSA / SSL private keys
+# =========================
+src/main/resources/certs/
+*.pem
+*.key
+*.p12
+*.jks
+
+# =========================
+# Firebase Admin SDK
+# =========================
+src/main/resources/*-firebase-adminsdk-*.json
+*-firebase-adminsdk-*.json
+
+# =========================
+# Test / coverage
+# =========================
+coverage/
+*.exec
+*.jacoco*
+
+# =========================
+# HELP dosyası (Spring Initializr tarafından üretilir)
+# =========================
+HELP.md
