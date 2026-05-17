@@ -1,8 +1,8 @@
 package com.fatihdemir.diyetappbackend.service;
 
-import com.fatihdemir.diyetappbackend.dto.AuthResponse;
-import com.fatihdemir.diyetappbackend.dto.ForgotPasswordRequest;
-import com.fatihdemir.diyetappbackend.dto.OAuthRequest;
+import com.fatihdemir.diyetappbackend.dto.auth.AuthResponse;
+import com.fatihdemir.diyetappbackend.dto.auth.ForgotPasswordRequest;
+import com.fatihdemir.diyetappbackend.dto.auth.OAuthRequest;
 import com.fatihdemir.diyetappbackend.dto.RefreshRequest;
 import com.fatihdemir.diyetappbackend.entity.*;
 import com.fatihdemir.diyetappbackend.exception.AuthException;

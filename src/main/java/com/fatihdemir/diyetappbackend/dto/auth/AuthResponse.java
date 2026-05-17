@@ -1,4 +1,4 @@
-package com.fatihdemir.diyetappbackend.dto;
+package com.fatihdemir.diyetappbackend.dto.auth;
 
 public record AuthResponse(
         String accessToken,

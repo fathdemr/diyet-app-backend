@@ -1,7 +1,7 @@
 package com.fatihdemir.diyetappbackend.controller;
 
-import com.fatihdemir.diyetappbackend.dto.DietitianResponse;
-import com.fatihdemir.diyetappbackend.dto.DietitianUpdateRequest;
+import com.fatihdemir.diyetappbackend.dto.dietitian.DietitianResponse;
+import com.fatihdemir.diyetappbackend.dto.dietitian.DietitianUpdateRequest;
 import com.fatihdemir.diyetappbackend.dto.PageResponse;
 import com.fatihdemir.diyetappbackend.service.DietitianService;
 import jakarta.validation.Valid;

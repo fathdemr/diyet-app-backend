@@ -1,4 +1,4 @@
-package com.fatihdemir.diyetappbackend.dto;
+package com.fatihdemir.diyetappbackend.dto.dietitian;
 
 import com.fatihdemir.diyetappbackend.entity.DietitianProfile;
 
@@ -16,17 +16,17 @@ public record DietitianResponse(
         String city,
         LocalDateTime createdAt
 ) {
-    public static DietitianResponse from(DietitianProfile p) {
+    public static DietitianResponse from(DietitianProfile d) {
         return new DietitianResponse(
-                p.getUserId(),
-                p.getFirstName(),
-                p.getLastName(),
-                p.getFullName(),
-                p.getBio(),
-                p.getSpecialization(),
-                p.getExperienceYear(),
-                p.getCity(),
-                p.getCreatedAt()
+                d.getUserId(),
+                d.getFirstName(),
+                d.getLastName(),
+                d.getFullName(),
+                d.getBio(),
+                d.getSpecialization(),
+                d.getExperienceYear(),
+                d.getCity(),
+                d.getCreatedAt()
         );
     }
 }

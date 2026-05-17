@@ -1,4 +1,4 @@
-package com.fatihdemir.diyetappbackend.dto;
+package com.fatihdemir.diyetappbackend.dto.dietitian;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
