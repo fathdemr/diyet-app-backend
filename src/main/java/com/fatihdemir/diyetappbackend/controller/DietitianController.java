@@ -1,19 +1,23 @@
 package com.fatihdemir.diyetappbackend.controller;
 
+import com.fatihdemir.diyetappbackend.dto.PageResponse;
+import com.fatihdemir.diyetappbackend.dto.availability.AvailabilityBulkRequest;
+import com.fatihdemir.diyetappbackend.dto.availability.AvailabilityResponse;
 import com.fatihdemir.diyetappbackend.dto.dietitian.DietitianResponse;
 import com.fatihdemir.diyetappbackend.dto.dietitian.DietitianUpdateRequest;
-import com.fatihdemir.diyetappbackend.dto.PageResponse;
 import com.fatihdemir.diyetappbackend.service.DietitianService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -21,6 +25,8 @@ import java.util.UUID;
 public class DietitianController {
 
     private final DietitianService dietitianService;
+
+    // ── Profil ──────────────────────────────────────────────────────────────
 
     @GetMapping("/exapi/dietitians")
     public ResponseEntity<PageResponse<DietitianResponse>> list(
@@ -40,5 +46,33 @@ public class DietitianController {
             @AuthenticationPrincipal String userId,
             @Valid @RequestBody DietitianUpdateRequest request) {
         return ResponseEntity.ok(dietitianService.updateProfile(userId, request));
+    }
+
+    // ── Müsaitlik ────────────────────────────────────────────────────────────
+
+    @PreAuthorize("hasRole('DIETITIAN')")
+    @PostMapping("/exapi/dietitians/me/availability")
+    public ResponseEntity<List<AvailabilityResponse>> bulkCreateAvailability(
+            @AuthenticationPrincipal String userId,
+            @Valid @RequestBody AvailabilityBulkRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(dietitianService.bulkCreateAvailability(userId, request));
+    }
+
+    @GetMapping("/exapi/dietitians/{dietitianId}/availability")
+    public ResponseEntity<PageResponse<AvailabilityResponse>> getAvailability(
+            @PathVariable UUID dietitianId,
+            @PageableDefault(size = 20, sort = "startDateTime", direction = Sort.Direction.ASC)
+            Pageable pageable) {
+        return ResponseEntity.ok(dietitianService.getAvailability(dietitianId, pageable));
+    }
+
+    @PreAuthorize("hasRole('DIETITIAN')")
+    @DeleteMapping("/exapi/dietitians/me/availability/{slotId}")
+    public ResponseEntity<Void> deleteAvailabilitySlot(
+            @AuthenticationPrincipal String userId,
+            @PathVariable UUID slotId) {
+        dietitianService.deleteAvailabilitySlot(userId, slotId);
+        return ResponseEntity.noContent().build();
     }
 }

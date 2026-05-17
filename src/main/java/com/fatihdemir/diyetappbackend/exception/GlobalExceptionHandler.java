@@ -18,6 +18,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getStatus()).body(errorBody(ex.getMessage()));
     }
 
+    @ExceptionHandler(AppointmentException.class)
+    public ResponseEntity<Map<String, Object>> handleAppointment(AppointmentException ex) {
+        return ResponseEntity.status(ex.getStatus()).body(errorBody(ex.getMessage()));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArg(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(errorBody(ex.getMessage()));
