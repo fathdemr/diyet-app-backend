@@ -6,9 +6,11 @@ import com.fatihdemir.diyetappbackend.dto.appointment.AppointmentResponse;
 import com.fatihdemir.diyetappbackend.entity.Appointment;
 import com.fatihdemir.diyetappbackend.entity.AppointmentStatus;
 import com.fatihdemir.diyetappbackend.exception.AppointmentException;
+import com.fatihdemir.diyetappbackend.entity.DietitianClient;
 import com.fatihdemir.diyetappbackend.repository.AppointmentRepository;
 import com.fatihdemir.diyetappbackend.repository.ClientProfileRepository;
 import com.fatihdemir.diyetappbackend.repository.DietitianAvailabilityRepository;
+import com.fatihdemir.diyetappbackend.repository.DietitianClientRepository;
 import com.fatihdemir.diyetappbackend.repository.DietitianProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,7 @@ public class AppointmentService {
     private final ClientProfileRepository clientProfileRepository;
     private final DietitianProfileRepository dietitianProfileRepository;
     private final DietitianAvailabilityRepository availabilityRepository;
+    private final DietitianClientRepository dietitianClientRepository;
 
     @Transactional
     public AppointmentResponse createAppointment(String principalUserId, AppointmentRequest request) {
@@ -88,7 +91,19 @@ public class AppointmentService {
         }
 
         appointment.setStatus(AppointmentStatus.CONFIRMED);
-        return AppointmentResponse.from(appointmentRepository.save(appointment));
+        AppointmentResponse response = AppointmentResponse.from(appointmentRepository.save(appointment));
+
+        // İlk onayda diyetisyen-danışan kaydı oluştur; startWeight o anki kiloyu saklar
+        if (!dietitianClientRepository.existsByDietitian_IdAndClient_Id(
+                dietitian.getId(), appointment.getClient().getId())) {
+            var dc = new DietitianClient();
+            dc.setDietitian(dietitian);
+            dc.setClient(appointment.getClient());
+            dc.setStartWeight(appointment.getClient().getWeight());
+            dietitianClientRepository.save(dc);
+        }
+
+        return response;
     }
 
     @Transactional

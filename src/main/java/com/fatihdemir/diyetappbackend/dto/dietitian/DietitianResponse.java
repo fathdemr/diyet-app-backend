@@ -11,7 +11,6 @@ public record DietitianResponse(
         String lastName,
         String fullName,
         String bio,
-        String specialization,
         Integer experienceYear,
         String city,
         LocalDateTime createdAt
@@ -23,7 +22,6 @@ public record DietitianResponse(
                 d.getLastName(),
                 d.getFullName(),
                 d.getBio(),
-                d.getSpecialization(),
                 d.getExperienceYear(),
                 d.getCity(),
                 d.getCreatedAt()

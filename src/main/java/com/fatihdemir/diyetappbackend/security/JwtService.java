@@ -26,7 +26,7 @@ public class JwtService {
     // ── Access Token ──────────────────────────────────────────────────────────
 
     public String generateAccessToken(User user, String fullName) {
-        Date now    = new Date();
+        Date now = new Date();
         Date expiry = new Date(now.getTime() + jwtProperties.getAccessTokenExpiration());
 
         return Jwts.builder()
@@ -74,7 +74,7 @@ public class JwtService {
     // ── Revocation ────────────────────────────────────────────────────────────
 
     public void revokeAccessToken(String token) {
-        Claims claims  = parseClaims(token);
+        Claims claims = parseClaims(token);
         long remaining = claims.getExpiration().getTime() - System.currentTimeMillis();
         redisTokenService.blacklistJti(claims.getId(), remaining);
     }
@@ -101,9 +101,10 @@ public class JwtService {
 
     private Map<String, Object> buildClaims(User user, String fullName) {
         return Map.of(
-                "email",    user.getEmail(),
+                "email", user.getEmail(),
                 "fullName", fullName,
-                "role",     user.getRole().name()
+                "role", user.getRole().name(),
+                "id", user.getId()
         );
     }
 }

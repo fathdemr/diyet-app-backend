@@ -3,6 +3,7 @@ package com.fatihdemir.diyetappbackend.controller;
 import com.fatihdemir.diyetappbackend.dto.PageResponse;
 import com.fatihdemir.diyetappbackend.dto.availability.AvailabilityBulkRequest;
 import com.fatihdemir.diyetappbackend.dto.availability.AvailabilityResponse;
+import com.fatihdemir.diyetappbackend.dto.dietitian.DietitianClientResponse;
 import com.fatihdemir.diyetappbackend.dto.dietitian.DietitianResponse;
 import com.fatihdemir.diyetappbackend.dto.dietitian.DietitianUpdateRequest;
 import com.fatihdemir.diyetappbackend.service.DietitianService;
@@ -46,6 +47,17 @@ public class DietitianController {
             @AuthenticationPrincipal String userId,
             @Valid @RequestBody DietitianUpdateRequest request) {
         return ResponseEntity.ok(dietitianService.updateProfile(userId, request));
+    }
+
+    // ── Danışanlar ───────────────────────────────────────────────────────────
+
+    @PreAuthorize("hasRole('DIETITIAN')")
+    @GetMapping("/exapi/dietitians/me/clients")
+    public ResponseEntity<PageResponse<DietitianClientResponse>> getMyClients(
+            @AuthenticationPrincipal String userId,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        return ResponseEntity.ok(dietitianService.getDietitianClients(userId, pageable));
     }
 
     // ── Müsaitlik ────────────────────────────────────────────────────────────

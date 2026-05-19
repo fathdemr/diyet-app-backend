@@ -1,9 +1,10 @@
 package com.fatihdemir.diyetappbackend.service;
 
+import com.fatihdemir.diyetappbackend.dto.RefreshRequest;
+import com.fatihdemir.diyetappbackend.dto.UserResponse;
 import com.fatihdemir.diyetappbackend.dto.auth.AuthResponse;
 import com.fatihdemir.diyetappbackend.dto.auth.ForgotPasswordRequest;
 import com.fatihdemir.diyetappbackend.dto.auth.OAuthRequest;
-import com.fatihdemir.diyetappbackend.dto.RefreshRequest;
 import com.fatihdemir.diyetappbackend.entity.*;
 import com.fatihdemir.diyetappbackend.exception.AuthException;
 import com.fatihdemir.diyetappbackend.repository.ClientProfileRepository;
@@ -52,9 +53,9 @@ public class AuthService {
     public AuthResponse oauthLogin(OAuthRequest request, Role role) {
         FirebaseToken firebaseToken = verifyFirebaseToken(request.firebaseToken());
 
-        String uid             = firebaseToken.getUid();
-        String email           = firebaseToken.getEmail();
-        String name            = firebaseToken.getName();
+        String uid = firebaseToken.getUid();
+        String email = firebaseToken.getEmail();
+        String name = firebaseToken.getName();
         LoginProvider provider = extractProvider(firebaseToken);
 
         /*
@@ -70,7 +71,7 @@ public class AuthService {
         User user = findOrCreateUser(uid, email, name, provider, role);
         String fullName = getProfileFullName(user);
 
-        String accessToken  = jwtService.generateAccessToken(user, fullName);
+        String accessToken = jwtService.generateAccessToken(user, fullName);
         String refreshToken = jwtService.generateRefreshToken(user);
 
         return new AuthResponse(accessToken, refreshToken, jwtProperties.getAccessTokenExpiration());
@@ -86,7 +87,7 @@ public class AuthService {
                 .orElseThrow(() -> new AuthException("Kullanıcı bulunamadı", HttpStatus.NOT_FOUND));
 
         String fullName = getProfileFullName(user);
-        String newAccessToken  = jwtService.generateAccessToken(user, fullName);
+        String newAccessToken = jwtService.generateAccessToken(user, fullName);
         String newRefreshToken = jwtService.generateRefreshToken(user);
 
         return new AuthResponse(newAccessToken, newRefreshToken, jwtProperties.getAccessTokenExpiration());
@@ -95,8 +96,8 @@ public class AuthService {
     // ── Logout ────────────────────────────────────────────────────────────────
 
     public void logout(String authHeader) {
-        String token = authHeader.substring(7);
-        UUID userId  = UUID.fromString(jwtService.extractSubject(token));
+        String token = authHeader.replace("Bearer ", "");
+        UUID userId = UUID.fromString(jwtService.extractSubject(token));
         jwtService.revokeAllUserTokens(userId, token);
     }
 
@@ -118,6 +119,23 @@ public class AuthService {
         ));
     }
 
+    public UserResponse getMe(String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        UUID userId = UUID.fromString(jwtService.extractSubject(token));
+        User user = userRepository.findById(userId).
+                orElseThrow(() -> new AuthException("User not found", HttpStatus.NOT_FOUND));
+
+        if (user.getRole() == Role.CLIENT) {
+            ClientProfile clientProfile = clientProfileRepository.findByUserId(user.getId())
+                    .orElseThrow(() -> new AuthException("Client not found", HttpStatus.NOT_FOUND));
+            return UserResponse.from(user, clientProfile.getFirstName(), clientProfile.getLastName(), clientProfile.getFullName(), clientProfile.getBirthDay());
+        } else {
+            DietitianProfile dietitianProfile = dietitianProfileRepository.findByUserId(user.getId())
+                    .orElseThrow(() -> new AuthException("Dietitian not found", HttpStatus.NOT_FOUND));
+            return UserResponse.from(user, dietitianProfile.getFirstName(), dietitianProfile.getLastName(), dietitianProfile.getFullName(), dietitianProfile.getBirthDay());
+        }
+    }
+
     // ── Private Helpers ───────────────────────────────────────────────────────
 
     private FirebaseToken verifyFirebaseToken(String idToken) {
@@ -136,8 +154,8 @@ public class AuthService {
         String signInProvider = (String) firebaseClaims.get("sign_in_provider");
         return switch (signInProvider != null ? signInProvider : "") {
             case "google.com" -> LoginProvider.GOOGLE;
-            case "apple.com"  -> LoginProvider.APPLE;
-            default           -> LoginProvider.EMAIL;
+            case "apple.com" -> LoginProvider.APPLE;
+            default -> LoginProvider.EMAIL;
         };
     }
 
@@ -174,7 +192,7 @@ public class AuthService {
 
     private User buildNewUser(String uid, String email, String name, LoginProvider provider, Role role) {
         String fullName = (name != null && !name.isBlank()) ? name : email.split("@")[0];
-        String[] parts  = fullName.split(" ", 2);
+        String[] parts = fullName.split(" ", 2);
 
         User user = new User();
         user.setFireBaseUid(uid);

@@ -1,6 +1,7 @@
 package com.fatihdemir.diyetappbackend.controller;
 
 import com.fatihdemir.diyetappbackend.dto.RefreshRequest;
+import com.fatihdemir.diyetappbackend.dto.UserResponse;
 import com.fatihdemir.diyetappbackend.dto.auth.AuthResponse;
 import com.fatihdemir.diyetappbackend.dto.auth.ForgotPasswordRequest;
 import com.fatihdemir.diyetappbackend.dto.auth.OAuthRequest;
@@ -50,5 +51,12 @@ public class AuthController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         authService.logout(authorization);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/exapi/auth/me")
+    public ResponseEntity<UserResponse> getMe(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        return ResponseEntity.ok(authService.getMe(authorization));
     }
 }

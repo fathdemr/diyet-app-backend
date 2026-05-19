@@ -1,0 +1,567 @@
+{
+  "apidogProject": "1.0.0",
+  "$schema": {
+    "app": "apidog",
+    "type": "project",
+    "version": "1.2.0"
+  },
+  "info": {
+    "name": "Appointment API",
+    "description": "Spring Boot Auto-generated from AppointmentController.java",
+    "mockRule": {
+      "rules": [],
+      "enableSystemRule": true
+    }
+  },
+  "apiCollection": [
+    {
+      "name": "Root",
+      "id": "root_collection",
+      "items": [
+        {
+          "name": "Appointment Management",
+          "id": "appointment_management_folder",
+          "items": [
+            {
+              "name": "Randevu (Appointment)",
+              "id": "appointment_entity_folder",
+              "items": [
+                {
+                  "name": "Müşteri Randevularım",
+                  "ordering": 10,
+                  "api": {
+                    "id": "appt1002",
+                    "method": "get",
+                    "path": "/exapi/appointments/me",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sayfa numarası (0-indexed, varsayılan: 0)",
+                        "schema": { "type": "integer", "example": 0 }
+                      },
+                      {
+                        "name": "size",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sayfa başına kayıt sayısı (varsayılan: 10)",
+                        "schema": { "type": "integer", "example": 10 }
+                      },
+                      {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sıralama parametresi (varsayılan: startDateTime,desc)",
+                        "schema": { "type": "string", "example": "startDateTime,desc" }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "none"
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Başarılı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "content": {
+                              "type": "array",
+                              "description": "Randevu listesi",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": { "type": "string", "format": "uuid", "description": "Randevu UUID'si", "example": "550e8400-e29b-41d4-a716-446655440000" },
+                                  "clientId": { "type": "string", "format": "uuid", "description": "Müşteri UUID'si", "example": "550e8400-e29b-41d4-a716-446655440001" },
+                                  "clientName": { "type": "string", "description": "Müşteri tam adı", "example": "Ali Yılmaz" },
+                                  "dietitianId": { "type": "string", "format": "uuid", "description": "Diyetisyen UUID'si", "example": "550e8400-e29b-41d4-a716-446655440002" },
+                                  "dietitianName": { "type": "string", "description": "Diyetisyen tam adı", "example": "Dr. Fatih Demir" },
+                                  "startDateTime": { "type": "string", "format": "date-time", "description": "Başlangıç tarihi ve saati", "example": "2026-06-01T10:00:00" },
+                                  "endDateTime": { "type": "string", "format": "date-time", "description": "Bitiş tarihi ve saati", "example": "2026-06-01T11:00:00" },
+                                  "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"], "description": "Randevu durumu", "example": "PENDING" },
+                                  "notes": { "type": "string", "description": "Randevu notları", "example": "Beslenme danışmanlığı" },
+                                  "cancelReason": { "type": "string", "description": "İptal nedeni (yalnızca CANCELLED durumunda)", "example": null },
+                                  "createdAt": { "type": "string", "format": "date-time", "description": "Oluşturma tarihi", "example": "2026-05-19T10:30:00" }
+                                },
+                                "x-apidog-orders": ["id", "clientId", "clientName", "dietitianId", "dietitianName", "startDateTime", "endDateTime", "status", "notes", "cancelReason", "createdAt"]
+                              }
+                            },
+                            "page": { "type": "integer", "description": "Mevcut sayfa (0-indexed)", "example": 0 },
+                            "size": { "type": "integer", "description": "Sayfa büyüklüğü", "example": 10 },
+                            "totalElements": { "type": "integer", "format": "int64", "description": "Toplam kayıt sayısı", "example": 25 },
+                            "totalPages": { "type": "integer", "description": "Toplam sayfa sayısı", "example": 3 },
+                            "last": { "type": "boolean", "description": "Son sayfa mı", "example": false }
+                          },
+                          "x-apidog-orders": ["content", "page", "size", "totalElements", "totalPages", "last"]
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Yetkisiz Erişim",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 403 },
+                            "error": { "type": "string", "example": "Forbidden" },
+                            "message": { "type": "string", "example": "Bu işlem için CLIENTS rolü gereklidir" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Müşteri Randevularım\n\n## Genel Bakış\nGiriş yapan müşterinin tüm randevularını sayfalı olarak getirir. Yalnızca **CLIENTS** rolüne sahip kullanıcılar bu endpoint'i kullanabilir.\n\n## HTTP Method & Path\n`GET /exapi/appointments/me`\n\n## Yetkilendirme\n- **Gerekli Rol:** `CLIENTS`\n- Bearer Token ile kimlik doğrulama zorunludur\n- Kullanıcı yalnızca kendi randevularını görebilir (token'dan otomatik alınır)\n\n## Query Parameters\n- **page** (integer): Sayfa numarası, 0-indexed (varsayılan: 0)\n- **size** (integer): Sayfa başına kayıt sayısı (varsayılan: 10)\n- **sort** (string): Sıralama parametresi (varsayılan: startDateTime,desc)\n\n## Örnek Request\n```bash\ncurl -X GET \"http://localhost:8080/exapi/appointments/me?page=0&size=10\" \\\n  -H \"Authorization: Bearer {token}\"\n```"
+                  }
+                },
+                {
+                  "name": "Diyetisyen Takvimi",
+                  "ordering": 15,
+                  "api": {
+                    "id": "appt1003",
+                    "method": "get",
+                    "path": "/exapi/appointments/dietitian-schedule",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sayfa numarası (0-indexed, varsayılan: 0)",
+                        "schema": { "type": "integer", "example": 0 }
+                      },
+                      {
+                        "name": "size",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sayfa başına kayıt sayısı (varsayılan: 10)",
+                        "schema": { "type": "integer", "example": 10 }
+                      },
+                      {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sıralama parametresi (varsayılan: startDateTime,desc)",
+                        "schema": { "type": "string", "example": "startDateTime,desc" }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "none"
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Başarılı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "content": {
+                              "type": "array",
+                              "description": "Randevu listesi",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": { "type": "string", "format": "uuid", "description": "Randevu UUID'si", "example": "550e8400-e29b-41d4-a716-446655440000" },
+                                  "clientId": { "type": "string", "format": "uuid", "description": "Müşteri UUID'si", "example": "550e8400-e29b-41d4-a716-446655440001" },
+                                  "clientName": { "type": "string", "description": "Müşteri tam adı", "example": "Ali Yılmaz" },
+                                  "dietitianId": { "type": "string", "format": "uuid", "description": "Diyetisyen UUID'si", "example": "550e8400-e29b-41d4-a716-446655440002" },
+                                  "dietitianName": { "type": "string", "description": "Diyetisyen tam adı", "example": "Dr. Fatih Demir" },
+                                  "startDateTime": { "type": "string", "format": "date-time", "description": "Başlangıç tarihi ve saati", "example": "2026-06-01T10:00:00" },
+                                  "endDateTime": { "type": "string", "format": "date-time", "description": "Bitiş tarihi ve saati", "example": "2026-06-01T11:00:00" },
+                                  "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"], "description": "Randevu durumu", "example": "CONFIRMED" },
+                                  "notes": { "type": "string", "description": "Randevu notları", "example": "Beslenme danışmanlığı" },
+                                  "cancelReason": { "type": "string", "description": "İptal nedeni", "example": null },
+                                  "createdAt": { "type": "string", "format": "date-time", "description": "Oluşturma tarihi", "example": "2026-05-19T10:30:00" }
+                                },
+                                "x-apidog-orders": ["id", "clientId", "clientName", "dietitianId", "dietitianName", "startDateTime", "endDateTime", "status", "notes", "cancelReason", "createdAt"]
+                              }
+                            },
+                            "page": { "type": "integer", "description": "Mevcut sayfa (0-indexed)", "example": 0 },
+                            "size": { "type": "integer", "description": "Sayfa büyüklüğü", "example": 10 },
+                            "totalElements": { "type": "integer", "format": "int64", "description": "Toplam kayıt sayısı", "example": 50 },
+                            "totalPages": { "type": "integer", "description": "Toplam sayfa sayısı", "example": 5 },
+                            "last": { "type": "boolean", "description": "Son sayfa mı", "example": false }
+                          },
+                          "x-apidog-orders": ["content", "page", "size", "totalElements", "totalPages", "last"]
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Yetkisiz Erişim",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 403 },
+                            "error": { "type": "string", "example": "Forbidden" },
+                            "message": { "type": "string", "example": "Bu işlem için DIETITIAN rolü gereklidir" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Diyetisyen Takvimi\n\n## Genel Bakış\nGiriş yapan diyetisyenin tüm randevularını sayfalı olarak getirir. Yalnızca **DIETITIAN** rolüne sahip kullanıcılar bu endpoint'i kullanabilir.\n\n## HTTP Method & Path\n`GET /exapi/appointments/dietitian-schedule`\n\n## Yetkilendirme\n- **Gerekli Rol:** `DIETITIAN`\n- Bearer Token ile kimlik doğrulama zorunludur\n\n## Örnek Request\n```bash\ncurl -X GET \"http://localhost:8080/exapi/appointments/dietitian-schedule?page=0&size=10\" \\\n  -H \"Authorization: Bearer {token}\"\n```"
+                  }
+                },
+                {
+                  "name": "Randevu Oluştur",
+                  "ordering": 20,
+                  "api": {
+                    "id": "appt1001",
+                    "method": "post",
+                    "path": "/exapi/appointments",
+                    "auth": null,
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "required": ["dietitianId", "startDateTime", "endDateTime"],
+                        "properties": {
+                          "dietitianId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "Randevu alınacak diyetisyenin UUID'si",
+                            "example": "550e8400-e29b-41d4-a716-446655440002"
+                          },
+                          "startDateTime": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "Randevu başlangıç tarihi ve saati — gelecek tarih olmalı (@Future)",
+                            "example": "2026-06-01T10:00:00"
+                          },
+                          "endDateTime": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "Randevu bitiş tarihi ve saati",
+                            "example": "2026-06-01T11:00:00"
+                          },
+                          "notes": {
+                            "type": "string",
+                            "description": "Randevu notları (opsiyonel)",
+                            "example": "Beslenme danışmanlığı için görüşme"
+                          }
+                        },
+                        "x-apidog-orders": ["dietitianId", "startDateTime", "endDateTime", "notes"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 201,
+                        "name": "Randevu Oluşturuldu",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid", "description": "Randevu UUID'si", "example": "550e8400-e29b-41d4-a716-446655440000" },
+                            "clientId": { "type": "string", "format": "uuid", "description": "Müşteri UUID'si", "example": "550e8400-e29b-41d4-a716-446655440001" },
+                            "clientName": { "type": "string", "description": "Müşteri tam adı", "example": "Ali Yılmaz" },
+                            "dietitianId": { "type": "string", "format": "uuid", "description": "Diyetisyen UUID'si", "example": "550e8400-e29b-41d4-a716-446655440002" },
+                            "dietitianName": { "type": "string", "description": "Diyetisyen tam adı", "example": "Dr. Fatih Demir" },
+                            "startDateTime": { "type": "string", "format": "date-time", "description": "Başlangıç tarihi ve saati", "example": "2026-06-01T10:00:00" },
+                            "endDateTime": { "type": "string", "format": "date-time", "description": "Bitiş tarihi ve saati", "example": "2026-06-01T11:00:00" },
+                            "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"], "description": "Randevu durumu — oluşturulduğunda PENDING olur", "example": "PENDING" },
+                            "notes": { "type": "string", "description": "Randevu notları", "example": "Beslenme danışmanlığı için görüşme" },
+                            "cancelReason": { "type": "string", "description": "İptal nedeni (yalnızca CANCELLED durumunda)", "example": null },
+                            "createdAt": { "type": "string", "format": "date-time", "description": "Oluşturma tarihi", "example": "2026-05-19T10:30:00" }
+                          },
+                          "x-apidog-orders": ["id", "clientId", "clientName", "dietitianId", "dietitianName", "startDateTime", "endDateTime", "status", "notes", "cancelReason", "createdAt"]
+                        }
+                      },
+                      {
+                        "code": 400,
+                        "name": "Geçersiz İstek",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "timestamp": { "type": "string", "format": "date-time", "example": "2026-05-19T10:30:00" },
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "Validation failed" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Yetkisiz Erişim",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 403 },
+                            "error": { "type": "string", "example": "Forbidden" },
+                            "message": { "type": "string", "example": "Bu işlem için CLIENTS rolü gereklidir" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 409,
+                        "name": "Çakışma",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 409 },
+                            "error": { "type": "string", "example": "Conflict" },
+                            "message": { "type": "string", "example": "Diyetisyenin bu zaman diliminde zaten bir randevusu var" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Randevu Oluştur\n\n## Genel Bakış\nMüşteri tarafından yeni bir randevu oluşturur. Yalnızca **CLIENTS** rolüne sahip kullanıcılar bu endpoint'i kullanabilir.\n\n## HTTP Method & Path\n`POST /exapi/appointments`\n\n## Yetkilendirme\n- **Gerekli Rol:** `CLIENTS`\n- Bearer Token ile kimlik doğrulama zorunludur\n\n## Request Body\n\n### Gerekli Alanlar\n- **dietitianId** (UUID): Randevu alınacak diyetisyen\n- **startDateTime** (LocalDateTime): Başlangıç tarihi — `@Future` validasyonu\n- **endDateTime** (LocalDateTime): Bitiş tarihi\n\n### Opsiyonel Alanlar\n- **notes** (String): Randevu notları\n\n## Örnek Request\n```bash\ncurl -X POST http://localhost:8080/exapi/appointments \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Authorization: Bearer {token}\" \\\n  -d '{\n    \"dietitianId\": \"550e8400-e29b-41d4-a716-446655440002\",\n    \"startDateTime\": \"2026-06-01T10:00:00\",\n    \"endDateTime\": \"2026-06-01T11:00:00\",\n    \"notes\": \"Beslenme danışmanlığı\"\n  }'\n```\n\n## Notlar\n- Oluşturulduğunda durum otomatik `PENDING` olur\n- `startDateTime` gelecek tarih olmalıdır\n- Çakışma varsa 409 döner"
+                  }
+                },
+                {
+                  "name": "Randevuyu Onayla",
+                  "ordering": 25,
+                  "api": {
+                    "id": "appt1004",
+                    "method": "patch",
+                    "path": "/exapi/appointments/{id}/confirm",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Onaylanacak randevunun UUID'si",
+                        "schema": { "type": "string", "format": "uuid", "example": "550e8400-e29b-41d4-a716-446655440000" }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "none"
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Randevu Onaylandı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid", "description": "Randevu UUID'si", "example": "550e8400-e29b-41d4-a716-446655440000" },
+                            "clientId": { "type": "string", "format": "uuid", "description": "Müşteri UUID'si", "example": "550e8400-e29b-41d4-a716-446655440001" },
+                            "clientName": { "type": "string", "description": "Müşteri tam adı", "example": "Ali Yılmaz" },
+                            "dietitianId": { "type": "string", "format": "uuid", "description": "Diyetisyen UUID'si", "example": "550e8400-e29b-41d4-a716-446655440002" },
+                            "dietitianName": { "type": "string", "description": "Diyetisyen tam adı", "example": "Dr. Fatih Demir" },
+                            "startDateTime": { "type": "string", "format": "date-time", "description": "Başlangıç tarihi ve saati", "example": "2026-06-01T10:00:00" },
+                            "endDateTime": { "type": "string", "format": "date-time", "description": "Bitiş tarihi ve saati", "example": "2026-06-01T11:00:00" },
+                            "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"], "description": "Randevu durumu", "example": "CONFIRMED" },
+                            "notes": { "type": "string", "description": "Randevu notları", "example": "Beslenme danışmanlığı" },
+                            "cancelReason": { "type": "string", "description": "İptal nedeni", "example": null },
+                            "createdAt": { "type": "string", "format": "date-time", "description": "Oluşturma tarihi", "example": "2026-05-19T10:30:00" }
+                          },
+                          "x-apidog-orders": ["id", "clientId", "clientName", "dietitianId", "dietitianName", "startDateTime", "endDateTime", "status", "notes", "cancelReason", "createdAt"]
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Yetkisiz Erişim",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 403 },
+                            "error": { "type": "string", "example": "Forbidden" },
+                            "message": { "type": "string", "example": "Bu işlem için DIETITIAN rolü gereklidir" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 404,
+                        "name": "Randevu Bulunamadı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 404 },
+                            "error": { "type": "string", "example": "Not Found" },
+                            "message": { "type": "string", "example": "Randevu bulunamadı" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Randevuyu Onayla\n\n## Genel Bakış\nDiyetisyen tarafından beklemedeki (PENDING) bir randevuyu onaylar. Yalnızca **DIETITIAN** rolüne sahip kullanıcılar bu endpoint'i kullanabilir.\n\n## HTTP Method & Path\n`PATCH /exapi/appointments/{id}/confirm`\n\n## Yetkilendirme\n- **Gerekli Rol:** `DIETITIAN`\n- Bearer Token ile kimlik doğrulama zorunludur\n\n## Path Parameters\n- **id** (UUID): Onaylanacak randevunun UUID'si\n\n## Örnek Request\n```bash\ncurl -X PATCH http://localhost:8080/exapi/appointments/550e8400-e29b-41d4-a716-446655440000/confirm \\\n  -H \"Authorization: Bearer {token}\"\n```\n\n## Notlar\n- Onaylanabilmesi için randevunun `PENDING` durumunda olması gerekir\n- Onay sonrası durum `CONFIRMED` olur"
+                  }
+                },
+                {
+                  "name": "Randevuyu Tamamla",
+                  "ordering": 30,
+                  "api": {
+                    "id": "appt1005",
+                    "method": "patch",
+                    "path": "/exapi/appointments/{id}/complete",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Tamamlanacak randevunun UUID'si",
+                        "schema": { "type": "string", "format": "uuid", "example": "550e8400-e29b-41d4-a716-446655440000" }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "none"
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Randevu Tamamlandı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid", "description": "Randevu UUID'si", "example": "550e8400-e29b-41d4-a716-446655440000" },
+                            "clientId": { "type": "string", "format": "uuid", "description": "Müşteri UUID'si", "example": "550e8400-e29b-41d4-a716-446655440001" },
+                            "clientName": { "type": "string", "description": "Müşteri tam adı", "example": "Ali Yılmaz" },
+                            "dietitianId": { "type": "string", "format": "uuid", "description": "Diyetisyen UUID'si", "example": "550e8400-e29b-41d4-a716-446655440002" },
+                            "dietitianName": { "type": "string", "description": "Diyetisyen tam adı", "example": "Dr. Fatih Demir" },
+                            "startDateTime": { "type": "string", "format": "date-time", "description": "Başlangıç tarihi ve saati", "example": "2026-06-01T10:00:00" },
+                            "endDateTime": { "type": "string", "format": "date-time", "description": "Bitiş tarihi ve saati", "example": "2026-06-01T11:00:00" },
+                            "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"], "description": "Randevu durumu", "example": "COMPLETED" },
+                            "notes": { "type": "string", "description": "Randevu notları", "example": "Beslenme danışmanlığı" },
+                            "cancelReason": { "type": "string", "description": "İptal nedeni", "example": null },
+                            "createdAt": { "type": "string", "format": "date-time", "description": "Oluşturma tarihi", "example": "2026-05-19T10:30:00" }
+                          },
+                          "x-apidog-orders": ["id", "clientId", "clientName", "dietitianId", "dietitianName", "startDateTime", "endDateTime", "status", "notes", "cancelReason", "createdAt"]
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Yetkisiz Erişim",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 403 },
+                            "error": { "type": "string", "example": "Forbidden" },
+                            "message": { "type": "string", "example": "Bu işlem için DIETITIAN rolü gereklidir" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 404,
+                        "name": "Randevu Bulunamadı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 404 },
+                            "error": { "type": "string", "example": "Not Found" },
+                            "message": { "type": "string", "example": "Randevu bulunamadı" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Randevuyu Tamamla\n\n## Genel Bakış\nDiyetisyen tarafından onaylanmış (CONFIRMED) bir randevuyu tamamlandı olarak işaretler. Yalnızca **DIETITIAN** rolüne sahip kullanıcılar bu endpoint'i kullanabilir.\n\n## HTTP Method & Path\n`PATCH /exapi/appointments/{id}/complete`\n\n## Yetkilendirme\n- **Gerekli Rol:** `DIETITIAN`\n- Bearer Token ile kimlik doğrulama zorunludur\n\n## Path Parameters\n- **id** (UUID): Tamamlanacak randevunun UUID'si\n\n## Örnek Request\n```bash\ncurl -X PATCH http://localhost:8080/exapi/appointments/550e8400-e29b-41d4-a716-446655440000/complete \\\n  -H \"Authorization: Bearer {token}\"\n```\n\n## Notlar\n- Tamamlanabilmesi için randevunun `CONFIRMED` durumunda olması gerekir\n- Tamamlama sonrası durum `COMPLETED` olur"
+                  }
+                },
+                {
+                  "name": "Randevuyu İptal Et",
+                  "ordering": 35,
+                  "api": {
+                    "id": "appt1006",
+                    "method": "patch",
+                    "path": "/exapi/appointments/{id}/cancel",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "İptal edilecek randevunun UUID'si",
+                        "schema": { "type": "string", "format": "uuid", "example": "550e8400-e29b-41d4-a716-446655440000" }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "required": ["reason"],
+                        "properties": {
+                          "reason": {
+                            "type": "string",
+                            "description": "İptal nedeni — boş olamaz (@NotBlank)",
+                            "example": "Hasta acil bir işi çıktı"
+                          }
+                        },
+                        "x-apidog-orders": ["reason"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Randevu İptal Edildi",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid", "description": "Randevu UUID'si", "example": "550e8400-e29b-41d4-a716-446655440000" },
+                            "clientId": { "type": "string", "format": "uuid", "description": "Müşteri UUID'si", "example": "550e8400-e29b-41d4-a716-446655440001" },
+                            "clientName": { "type": "string", "description": "Müşteri tam adı", "example": "Ali Yılmaz" },
+                            "dietitianId": { "type": "string", "format": "uuid", "description": "Diyetisyen UUID'si", "example": "550e8400-e29b-41d4-a716-446655440002" },
+                            "dietitianName": { "type": "string", "description": "Diyetisyen tam adı", "example": "Dr. Fatih Demir" },
+                            "startDateTime": { "type": "string", "format": "date-time", "description": "Başlangıç tarihi ve saati", "example": "2026-06-01T10:00:00" },
+                            "endDateTime": { "type": "string", "format": "date-time", "description": "Bitiş tarihi ve saati", "example": "2026-06-01T11:00:00" },
+                            "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"], "description": "Randevu durumu", "example": "CANCELLED" },
+                            "notes": { "type": "string", "description": "Randevu notları", "example": "Beslenme danışmanlığı" },
+                            "cancelReason": { "type": "string", "description": "İptal nedeni", "example": "Hasta acil bir işi çıktı" },
+                            "createdAt": { "type": "string", "format": "date-time", "description": "Oluşturma tarihi", "example": "2026-05-19T10:30:00" }
+                          },
+                          "x-apidog-orders": ["id", "clientId", "clientName", "dietitianId", "dietitianName", "startDateTime", "endDateTime", "status", "notes", "cancelReason", "createdAt"]
+                        }
+                      },
+                      {
+                        "code": 400,
+                        "name": "Geçersiz İstek",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "timestamp": { "type": "string", "format": "date-time", "example": "2026-05-19T10:30:00" },
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "reason: İptal nedeni boş olamaz" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Yetkisiz Erişim",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 403 },
+                            "error": { "type": "string", "example": "Forbidden" },
+                            "message": { "type": "string", "example": "Bu işlem için CLIENTS veya DIETITIAN rolü gereklidir" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 404,
+                        "name": "Randevu Bulunamadı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 404 },
+                            "error": { "type": "string", "example": "Not Found" },
+                            "message": { "type": "string", "example": "Randevu bulunamadı" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Randevuyu İptal Et\n\n## Genel Bakış\nHem müşteri hem de diyetisyen tarafından bir randevuyu iptal eder. **CLIENTS** veya **DIETITIAN** rolüne sahip kullanıcılar bu endpoint'i kullanabilir.\n\n## HTTP Method & Path\n`PATCH /exapi/appointments/{id}/cancel`\n\n## Yetkilendirme\n- **Gerekli Rol:** `CLIENTS` veya `DIETITIAN`\n- Bearer Token ile kimlik doğrulama zorunludur\n\n## Path Parameters\n- **id** (UUID): İptal edilecek randevunun UUID'si\n\n## Request Body\n\n### Gerekli Alanlar\n- **reason** (String): İptal nedeni — boş olamaz (`@NotBlank`)\n\n## Örnek Request\n```bash\ncurl -X PATCH http://localhost:8080/exapi/appointments/550e8400-e29b-41d4-a716-446655440000/cancel \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Authorization: Bearer {token}\" \\\n  -d '{\"reason\": \"Hasta acil bir işi çıktı\"}'\n```\n\n## Notlar\n- İptal sonrası durum `CANCELLED` olur, `cancelReason` alanı dolar\n- `reason` alanı zorunludur, boş bırakılamaz"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

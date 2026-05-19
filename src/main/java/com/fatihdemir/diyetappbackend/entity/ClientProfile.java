@@ -1,7 +1,10 @@
 package com.fatihdemir.diyetappbackend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
@@ -9,15 +12,16 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "client_profiles")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ClientProfile extends BaseEntity {
 
     @Id
     @GeneratedValue
     @UuidGenerator
+    @EqualsAndHashCode.Include
     private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -37,4 +41,5 @@ public class ClientProfile extends BaseEntity {
     private Double height;
     private Double weight;
     private String goal;
+    private String gender;
 }

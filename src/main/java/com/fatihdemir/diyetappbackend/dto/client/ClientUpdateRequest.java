@@ -7,6 +7,7 @@ public record ClientUpdateRequest(
         @Size(max = 50) String lastName,
         Double height,
         Double weight,
-        String goal
+        String goal,
+        String gender
 ) {
 }

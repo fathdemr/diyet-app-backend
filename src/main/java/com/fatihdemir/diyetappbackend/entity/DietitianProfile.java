@@ -1,23 +1,29 @@
 package com.fatihdemir.diyetappbackend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
 @Table(name = "dietitian_profiles")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class DietitianProfile extends BaseEntity {
 
     @Id
     @GeneratedValue
     @UuidGenerator
+    @EqualsAndHashCode.Include
     private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -35,7 +41,15 @@ public class DietitianProfile extends BaseEntity {
 
     private LocalDate birthDay;
     private String bio;
-    private String specialization;
     private Integer experienceYear;
     private String city;
+    private String university; // University modelinden String şekilde id gelecek
+
+    @ManyToMany
+    @JoinTable(
+            name = "dietitian_tags",
+            joinColumns = @JoinColumn(name = "dietitian_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
 }

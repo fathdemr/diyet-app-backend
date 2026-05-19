@@ -1,0 +1,436 @@
+{
+  "apidogProject": "1.0.0",
+  "$schema": {
+    "app": "apidog",
+    "type": "project",
+    "version": "1.2.0"
+  },
+  "info": {
+    "name": "Auth API",
+    "description": "Firebase OAuth tabanlı kimlik doğrulama ve token yönetimi",
+    "mockRule": {
+      "rules": [],
+      "enableSystemRule": true
+    }
+  },
+  "apiCollection": [
+    {
+      "name": "Root",
+      "id": "root_collection",
+      "items": [
+        {
+          "name": "Auth Management",
+          "id": "auth_management_folder",
+          "items": [
+            {
+              "name": "Auth",
+              "id": "auth_entity_folder",
+              "items": [
+                {
+                  "name": "İstemci Girişi",
+                  "ordering": 10,
+                  "api": {
+                    "id": "auth_client_login_001",
+                    "method": "post",
+                    "path": "/api/auth/client/login",
+                    "auth": null,
+                    "parameters": [],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "required": ["firebaseToken"],
+                        "properties": {
+                          "firebaseToken": {
+                            "type": "string",
+                            "description": "Firebase kimlik doğrulama token'ı",
+                            "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6..."
+                          }
+                        },
+                        "x-apidog-orders": ["firebaseToken"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Giriş Başarılı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "accessToken": {
+                              "type": "string",
+                              "description": "JWT erişim token'ı",
+                              "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                            },
+                            "refreshToken": {
+                              "type": "string",
+                              "description": "Yenileme token'ı",
+                              "example": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
+                            },
+                            "tokenType": {
+                              "type": "string",
+                              "description": "Token tipi",
+                              "example": "Bearer"
+                            },
+                            "expiresIn": {
+                              "type": "integer",
+                              "description": "Token geçerlilik süresi (saniye)",
+                              "example": 3600
+                            }
+                          },
+                          "x-apidog-orders": ["accessToken", "refreshToken", "tokenType", "expiresIn"]
+                        }
+                      },
+                      {
+                        "code": 400,
+                        "name": "Geçersiz İstek",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "timestamp": { "type": "string", "format": "date-time", "example": "2026-05-19T10:30:00" },
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "firebaseToken boş olamaz" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 401,
+                        "name": "Kimlik Doğrulama Hatası",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "timestamp": { "type": "string", "format": "date-time", "example": "2026-05-19T10:30:00" },
+                            "status": { "type": "integer", "example": 401 },
+                            "error": { "type": "string", "example": "Unauthorized" },
+                            "message": { "type": "string", "example": "Geçersiz Firebase token" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# İstemci Girişi\n\n## Genel Bakış\nFirebase token ile danışan (CLIENT) rolünde oturum açar. Başarılı girişte JWT accessToken ve refreshToken döner.\n\n## HTTP Method & Path\n`POST /api/auth/client/login`\n\n## Yetkilendirme\nYetkilendirme gerektirmez (public endpoint)\n\n## Request Body\n\n### Gerekli Alanlar\n- **firebaseToken** (string): Firebase Authentication'dan alınan ID token\n\n## Response\n\n### Başarılı (200)\n```json\n{\n  \"accessToken\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refreshToken\": \"dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4...\",\n  \"tokenType\": \"Bearer\",\n  \"expiresIn\": 3600\n}\n```\n\n## Örnek Request\n```bash\ncurl -X POST http://localhost:8080/api/auth/client/login \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"firebaseToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6...\"}'\n```\n\n## Notlar\n- Firebase token, Firebase Authentication tarafından istemci uygulamadan alınmalıdır\n- accessToken sonraki isteklerde `Authorization: Bearer {accessToken}` olarak kullanılır"
+                  }
+                },
+                {
+                  "name": "Diyetisyen Girişi",
+                  "ordering": 20,
+                  "api": {
+                    "id": "auth_dietitian_login_002",
+                    "method": "post",
+                    "path": "/api/auth/dietitian/login",
+                    "auth": null,
+                    "parameters": [],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "required": ["firebaseToken"],
+                        "properties": {
+                          "firebaseToken": {
+                            "type": "string",
+                            "description": "Firebase kimlik doğrulama token'ı",
+                            "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6..."
+                          }
+                        },
+                        "x-apidog-orders": ["firebaseToken"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Giriş Başarılı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "accessToken": {
+                              "type": "string",
+                              "description": "JWT erişim token'ı",
+                              "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                            },
+                            "refreshToken": {
+                              "type": "string",
+                              "description": "Yenileme token'ı",
+                              "example": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
+                            },
+                            "tokenType": {
+                              "type": "string",
+                              "description": "Token tipi",
+                              "example": "Bearer"
+                            },
+                            "expiresIn": {
+                              "type": "integer",
+                              "description": "Token geçerlilik süresi (saniye)",
+                              "example": 3600
+                            }
+                          },
+                          "x-apidog-orders": ["accessToken", "refreshToken", "tokenType", "expiresIn"]
+                        }
+                      },
+                      {
+                        "code": 400,
+                        "name": "Geçersiz İstek",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "firebaseToken boş olamaz" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 401,
+                        "name": "Kimlik Doğrulama Hatası",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 401 },
+                            "error": { "type": "string", "example": "Unauthorized" },
+                            "message": { "type": "string", "example": "Geçersiz Firebase token" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Diyetisyen Girişi\n\n## Genel Bakış\nFirebase token ile diyetisyen (DIETITIAN) rolünde oturum açar.\n\n## HTTP Method & Path\n`POST /api/auth/dietitian/login`\n\n## Yetkilendirme\nYetkilendirme gerektirmez (public endpoint)\n\n## Request Body\n\n### Gerekli Alanlar\n- **firebaseToken** (string): Firebase kimlik doğrulama token'ı\n\n## Response\n\n### Başarılı (200)\n```json\n{\n  \"accessToken\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refreshToken\": \"dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4...\",\n  \"tokenType\": \"Bearer\",\n  \"expiresIn\": 3600\n}\n```\n\n## Notlar\n- İstemci girişinden farklı olarak DIETITIAN rolü atanır\n- Diyetisyen hesabı Firebase'de önceden tanımlı olmalıdır"
+                  }
+                },
+                {
+                  "name": "Token Yenile",
+                  "ordering": 30,
+                  "api": {
+                    "id": "auth_refresh_003",
+                    "method": "post",
+                    "path": "/api/auth/refresh",
+                    "auth": null,
+                    "parameters": [],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "required": ["refreshToken"],
+                        "properties": {
+                          "refreshToken": {
+                            "type": "string",
+                            "description": "Daha önce alınmış yenileme token'ı",
+                            "example": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
+                          }
+                        },
+                        "x-apidog-orders": ["refreshToken"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Token Yenilendi",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "accessToken": {
+                              "type": "string",
+                              "description": "Yeni JWT erişim token'ı",
+                              "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                            },
+                            "refreshToken": {
+                              "type": "string",
+                              "description": "Yeni yenileme token'ı",
+                              "example": "bmV3UmVmcmVzaFRva2Vu..."
+                            },
+                            "tokenType": {
+                              "type": "string",
+                              "description": "Token tipi",
+                              "example": "Bearer"
+                            },
+                            "expiresIn": {
+                              "type": "integer",
+                              "description": "Token geçerlilik süresi (saniye)",
+                              "example": 3600
+                            }
+                          },
+                          "x-apidog-orders": ["accessToken", "refreshToken", "tokenType", "expiresIn"]
+                        }
+                      },
+                      {
+                        "code": 401,
+                        "name": "Geçersiz Refresh Token",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 401 },
+                            "error": { "type": "string", "example": "Unauthorized" },
+                            "message": { "type": "string", "example": "Refresh token geçersiz veya süresi dolmuş" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Token Yenile\n\n## Genel Bakış\nSüresi dolmak üzere olan veya dolmuş accessToken'ı refreshToken kullanarak yeniler.\n\n## HTTP Method & Path\n`POST /api/auth/refresh`\n\n## Yetkilendirme\nYetkilendirme gerektirmez\n\n## Request Body\n\n### Gerekli Alanlar\n- **refreshToken** (string): Giriş sırasında alınan yenileme token'ı\n\n## Response\n\n### Başarılı (200)\n```json\n{\n  \"accessToken\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refreshToken\": \"bmV3UmVmcmVzaFRva2Vu...\",\n  \"tokenType\": \"Bearer\",\n  \"expiresIn\": 3600\n}\n```\n\n## Notlar\n- Refresh token kullanıldıktan sonra geçersiz hale gelir (tek kullanımlık)\n- Yeni refreshToken da döner, bunu saklayın"
+                  }
+                },
+                {
+                  "name": "Şifremi Unuttum",
+                  "ordering": 40,
+                  "api": {
+                    "id": "auth_forgot_password_004",
+                    "method": "post",
+                    "path": "/api/auth/forgot-password",
+                    "auth": null,
+                    "parameters": [],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "required": ["email"],
+                        "properties": {
+                          "email": {
+                            "type": "string",
+                            "format": "email",
+                            "description": "Şifre sıfırlama bağlantısı gönderilecek e-posta adresi",
+                            "example": "kullanici@ornek.com"
+                          }
+                        },
+                        "x-apidog-orders": ["email"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "E-posta Gönderildi",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "description": "Boş yanıt - işlem başarılı"
+                        }
+                      },
+                      {
+                        "code": 400,
+                        "name": "Geçersiz E-posta",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "Geçerli bir e-posta adresi girin" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Şifremi Unuttum\n\n## Genel Bakış\nKullanıcının e-posta adresine şifre sıfırlama bağlantısı gönderir.\n\n## HTTP Method & Path\n`POST /api/auth/forgot-password`\n\n## Yetkilendirme\nYetkilendirme gerektirmez\n\n## Request Body\n\n### Gerekli Alanlar\n- **email** (string, email format): Kayıtlı e-posta adresi\n\n## Response\n\n### Başarılı (200)\nBoş yanıt — şifre sıfırlama e-postası gönderildi\n\n## Örnek Request\n```bash\ncurl -X POST http://localhost:8080/api/auth/forgot-password \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"email\": \"kullanici@ornek.com\"}'\n```"
+                  }
+                },
+                {
+                  "name": "Doğrulama E-postasını Tekrar Gönder",
+                  "ordering": 50,
+                  "api": {
+                    "id": "auth_resend_verification_005",
+                    "method": "post",
+                    "path": "/api/auth/resend-verification",
+                    "auth": null,
+                    "parameters": [],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "required": ["firebaseToken"],
+                        "properties": {
+                          "firebaseToken": {
+                            "type": "string",
+                            "description": "Firebase kimlik doğrulama token'ı",
+                            "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6..."
+                          }
+                        },
+                        "x-apidog-orders": ["firebaseToken"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Doğrulama E-postası Gönderildi",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "description": "Boş yanıt - işlem başarılı"
+                        }
+                      },
+                      {
+                        "code": 400,
+                        "name": "Geçersiz İstek",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "firebaseToken boş olamaz" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Doğrulama E-postasını Tekrar Gönder\n\n## Genel Bakış\nFirebase token ile hesap doğrulama e-postasını yeniden gönderir.\n\n## HTTP Method & Path\n`POST /api/auth/resend-verification`\n\n## Yetkilendirme\nYetkilendirme gerektirmez\n\n## Request Body\n\n### Gerekli Alanlar\n- **firebaseToken** (string): Firebase kimlik doğrulama token'ı\n\n## Response\n\n### Başarılı (200)\nBoş yanıt — doğrulama e-postası gönderildi"
+                  }
+                },
+                {
+                  "name": "Çıkış Yap",
+                  "ordering": 60,
+                  "api": {
+                    "id": "auth_logout_006",
+                    "method": "post",
+                    "path": "/exapi/auth/logout",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer JWT erişim token'ı",
+                        "schema": {
+                          "type": "string",
+                          "example": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "none"
+                    },
+                    "responses": [
+                      {
+                        "code": 204,
+                        "name": "Çıkış Başarılı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "description": "İçerik yok"
+                        }
+                      },
+                      {
+                        "code": 401,
+                        "name": "Yetkisiz",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 401 },
+                            "error": { "type": "string", "example": "Unauthorized" },
+                            "message": { "type": "string", "example": "Geçersiz veya eksik token" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Çıkış Yap\n\n## Genel Bakış\nMevcut oturumu sonlandırır. Token Redis'ten silinerek geçersiz hale getirilir.\n\n## HTTP Method & Path\n`POST /exapi/auth/logout`\n\n## Yetkilendirme\nBearer token gereklidir (`/exapi/` prefix korumalı endpoint)\n\n## Headers\n- **Authorization** (string, required): `Bearer {accessToken}`\n\n## Response\n\n### Başarılı (204)\nİçerik yok — oturum başarıyla kapatıldı\n\n## Örnek Request\n```bash\ncurl -X POST http://localhost:8080/exapi/auth/logout \\\n  -H \"Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...\"\n```\n\n## Notlar\n- Token Redis cache'inden silinir ve tekrar kullanılamaz"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
