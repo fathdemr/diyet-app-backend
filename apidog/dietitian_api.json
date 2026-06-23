@@ -1,0 +1,259 @@
+{
+  "apidogProject": "1.0.0",
+  "$schema": {
+    "app": "apidog",
+    "type": "project",
+    "version": "1.2.0"
+  },
+  "info": {
+    "name": "Diyetisyen Profil API",
+    "description": "Diyetisyenin kendi profilini yönettiği endpoint'ler. Tüm endpoint'ler DIETITIAN rolü gerektirir.",
+    "mockRule": {
+      "rules": [],
+      "enableSystemRule": true
+    }
+  },
+  "apiCollection": [
+    {
+      "name": "Root",
+      "id": "root_collection",
+      "items": [
+        {
+          "name": "Diyetisyen Yönetimi",
+          "id": "dietitian_management_folder",
+          "items": [
+            {
+              "name": "Profil",
+              "id": "dietitian_profile_folder",
+              "items": [
+                {
+                  "name": "Profil Güncelle",
+                  "ordering": 30,
+                  "api": {
+                    "id": "dp001a2b3",
+                    "method": "put",
+                    "path": "/exapi/dietitian/update",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer token (DIETITIAN rolü gerekli)",
+                        "schema": { "type": "string", "example": "Bearer eyJhbGciOiJSUzI1NiJ9..." }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "properties": {
+                          "firstName": {
+                            "type": "string",
+                            "description": "Diyetisyenin adı",
+                            "example": "Ahmet"
+                          },
+                          "lastName": {
+                            "type": "string",
+                            "description": "Diyetisyenin soyadı",
+                            "example": "Yılmaz"
+                          },
+                          "userName": {
+                            "type": "string",
+                            "description": "Kullanıcı adı",
+                            "example": "ahmetyilmaz"
+                          },
+                          "bio": {
+                            "type": "string",
+                            "description": "Diyetisyen hakkında kısa biyografi",
+                            "example": "10 yıllık deneyimli diyetisyen. Spor beslenmesi ve kilo yönetimi alanında uzman."
+                          },
+                          "city": {
+                            "type": "string",
+                            "description": "Yaşadığı veya hizmet verdiği şehir",
+                            "example": "İstanbul"
+                          },
+                          "birthDay": {
+                            "type": "string",
+                            "format": "date",
+                            "description": "Doğum tarihi (yyyy-MM-dd)",
+                            "example": "1990-05-15"
+                          },
+                          "experienceYear": {
+                            "type": "integer",
+                            "description": "Mesleki deneyim yılı",
+                            "example": 10
+                          }
+                        },
+                        "x-apidog-orders": ["firstName", "lastName", "userName", "bio", "city", "birthDay", "experienceYear"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Başarılı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "description": "Dietitian entity UUID",
+                              "example": "550e8400-e29b-41d4-a716-446655440000"
+                            },
+                            "firstName": {
+                              "type": "string",
+                              "description": "Diyetisyenin adı",
+                              "example": "Ahmet"
+                            },
+                            "lastName": {
+                              "type": "string",
+                              "description": "Diyetisyenin soyadı",
+                              "example": "Yılmaz"
+                            },
+                            "userName": {
+                              "type": "string",
+                              "description": "Kullanıcı adı",
+                              "example": "ahmetyilmaz"
+                            },
+                            "bio": {
+                              "type": "string",
+                              "description": "Biyografi",
+                              "example": "10 yıllık deneyimli diyetisyen."
+                            },
+                            "city": {
+                              "type": "string",
+                              "description": "Şehir",
+                              "example": "İstanbul"
+                            },
+                            "birthDay": {
+                              "type": "string",
+                              "format": "date",
+                              "description": "Doğum tarihi",
+                              "example": "1990-05-15"
+                            },
+                            "experienceYear": {
+                              "type": "integer",
+                              "description": "Deneyim yılı",
+                              "example": 10
+                            }
+                          },
+                          "x-apidog-orders": ["id", "firstName", "lastName", "userName", "bio", "city", "birthDay", "experienceYear"]
+                        }
+                      },
+                      {
+                        "code": 401,
+                        "name": "Yetkisiz",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Token gerekli" },
+                            "status": { "type": "integer", "example": 401 }
+                          }
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Erişim Reddedildi",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Bu işlem için yetkiniz yok" },
+                            "status": { "type": "integer", "example": 403 }
+                          }
+                        }
+                      },
+                      {
+                        "code": 404,
+                        "name": "Bulunamadı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Dietitian Not Found!" },
+                            "status": { "type": "integer", "example": 404 }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Profil Güncelle\n\n## Genel Bakış\nGiriş yapan diyetisyenin profil bilgilerini günceller. JWT token'dan diyetisyen kimliği otomatik alınır — request body'de ID göndermeye gerek yoktur.\n\n## HTTP Method & Path\n`PUT /exapi/dietitian/update`\n\n## Yetkilendirme\nAuthentication gereklidir. Sadece **DIETITIAN** rolüne sahip kullanıcılar erişebilir.\n\n## Notlar\n- Tüm alanlar opsiyoneldir — sadece güncellemek istediğin alanları gönder\n- `id` request body'de beklenmez, JWT'den otomatik alınır\n- `firstName` ve `lastName` User entity'sinde güncellenir\n- `userName`, `bio`, `city`, `birthDay`, `experienceYear` Dietitian entity'sinde güncellenir\n\n## Request Body\n```json\n{\n  \"firstName\": \"Ahmet\",\n  \"lastName\": \"Yılmaz\",\n  \"userName\": \"ahmetyilmaz\",\n  \"bio\": \"10 yıllık deneyimli diyetisyen.\",\n  \"city\": \"İstanbul\",\n  \"birthDay\": \"1990-05-15\",\n  \"experienceYear\": 10\n}\n```\n\n## Response\n\n### Başarılı (200)\n```json\n{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"firstName\": \"Ahmet\",\n  \"lastName\": \"Yılmaz\",\n  \"userName\": \"ahmetyilmaz\",\n  \"bio\": \"10 yıllık deneyimli diyetisyen.\",\n  \"city\": \"İstanbul\",\n  \"birthDay\": \"1990-05-15\",\n  \"experienceYear\": 10\n}\n```\n\n## Örnek İstek\n```bash\ncurl -X PUT \"http://localhost:8080/exapi/dietitian/update\" \\\n  -H \"Authorization: Bearer eyJhbGci...\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"bio\": \"Spor beslenmesi uzmanı.\",\n    \"city\": \"Ankara\",\n    \"experienceYear\": 12\n  }'\n```"
+                  }
+                },
+                {
+                  "name": "Profil Sil",
+                  "ordering": 40,
+                  "api": {
+                    "id": "dp002c4d5",
+                    "method": "delete",
+                    "path": "/exapi/dietitian/delete",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer token (DIETITIAN rolü gerekli)",
+                        "schema": { "type": "string", "example": "Bearer eyJhbGciOiJSUzI1NiJ9..." }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "none"
+                    },
+                    "responses": [
+                      {
+                        "code": 204,
+                        "name": "Başarılı — İçerik Yok",
+                        "contentType": "application/json",
+                        "jsonSchema": {}
+                      },
+                      {
+                        "code": 401,
+                        "name": "Yetkisiz",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Token gerekli" },
+                            "status": { "type": "integer", "example": 401 }
+                          }
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Erişim Reddedildi",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Bu işlem için yetkiniz yok" },
+                            "status": { "type": "integer", "example": 403 }
+                          }
+                        }
+                      },
+                      {
+                        "code": 404,
+                        "name": "Bulunamadı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Dietitian Not Found!" },
+                            "status": { "type": "integer", "example": 404 }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Profil Sil\n\n## Genel Bakış\nGiriş yapan diyetisyenin profilini siler. JWT token'dan diyetisyen kimliği otomatik alınır. Bu işlem geri alınamaz.\n\n## HTTP Method & Path\n`DELETE /exapi/dietitian/delete`\n\n## Yetkilendirme\nAuthentication gereklidir. Sadece **DIETITIAN** rolüne sahip kullanıcılar erişebilir.\n\n## Notlar\n- Request body gerekmez\n- Silme işlemi **kalıcıdır** ve geri alınamaz\n- Silinen diyetisyene ait aktif randevular etkilenebilir\n\n## Response\n- **204 No Content**: Profil başarıyla silindi\n\n## Örnek İstek\n```bash\ncurl -X DELETE \"http://localhost:8080/exapi/dietitian/delete\" \\\n  -H \"Authorization: Bearer eyJhbGci...\"\n```"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

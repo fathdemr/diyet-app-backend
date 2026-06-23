@@ -1,0 +1,530 @@
+{
+  "apidogProject": "1.0.0",
+  "$schema": {
+    "app": "apidog",
+    "type": "project",
+    "version": "1.2.0"
+  },
+  "info": {
+    "name": "Diyetisyen Slot API",
+    "description": "Diyetisyenin müsait zaman dilimlerini yönettiği endpoint'ler. Tüm endpoint'ler DIETITIAN rolü gerektirir.",
+    "mockRule": {
+      "rules": [],
+      "enableSystemRule": true
+    }
+  },
+  "apiCollection": [
+    {
+      "name": "Root",
+      "id": "root_collection",
+      "items": [
+        {
+          "name": "Diyetisyen Yönetimi",
+          "id": "dietitian_management_folder",
+          "items": [
+            {
+              "name": "Slot",
+              "id": "slot_folder",
+              "items": [
+                {
+                  "name": "Slot Listesi",
+                  "ordering": 10,
+                  "api": {
+                    "id": "ds001a2b3",
+                    "method": "get",
+                    "path": "/exapi/dietitian/slot",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer token (DIETITIAN rolü gerekli)",
+                        "schema": { "type": "string", "example": "Bearer eyJhbGciOiJSUzI1NiJ9..." }
+                      },
+                      {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sayfa numarası (0-indexed)",
+                        "schema": { "type": "integer", "example": 0 }
+                      },
+                      {
+                        "name": "size",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sayfa başına kayıt sayısı (varsayılan: 20)",
+                        "schema": { "type": "integer", "example": 20 }
+                      },
+                      {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "description": "Sıralama alanı ve yönü (varsayılan: date,asc)",
+                        "schema": { "type": "string", "example": "date,asc" }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "none"
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Başarılı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "content": {
+                              "type": "array",
+                              "description": "Slot listesi",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": { "type": "string", "format": "uuid", "description": "Slot benzersiz ID", "example": "550e8400-e29b-41d4-a716-446655440000" },
+                                  "date": { "type": "string", "format": "date", "description": "Randevu tarihi", "example": "2026-07-01" },
+                                  "startTime": { "type": "string", "format": "time", "description": "Başlangıç saati", "example": "09:00:00" },
+                                  "endTime": { "type": "string", "format": "time", "description": "Bitiş saati", "example": "10:00:00" },
+                                  "booked": { "type": "boolean", "description": "Rezerve edilip edilmediği", "example": false }
+                                },
+                                "x-apidog-orders": ["id", "date", "startTime", "endTime", "booked"]
+                              }
+                            },
+                            "totalElements": { "type": "integer", "description": "Toplam kayıt sayısı", "example": 15 },
+                            "totalPages": { "type": "integer", "description": "Toplam sayfa sayısı", "example": 1 },
+                            "page": { "type": "integer", "description": "Mevcut sayfa numarası", "example": 0 },
+                            "size": { "type": "integer", "description": "Sayfa başına kayıt sayısı", "example": 20 },
+                            "last": { "type": "boolean", "description": "Son sayfa mı", "example": true }
+                          },
+                          "x-apidog-orders": ["content", "totalElements", "totalPages", "page", "size", "last"]
+                        }
+                      },
+                      {
+                        "code": 401,
+                        "name": "Yetkisiz",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Token gerekli" },
+                            "status": { "type": "integer", "example": 401 }
+                          }
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Erişim Reddedildi",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Bu işlem için yetkiniz yok" },
+                            "status": { "type": "integer", "example": 403 }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Slot Listesi\n\n## Genel Bakış\nGiriş yapan diyetisyenin tüm müsait zaman dilimlerini sayfalı olarak getirir. JWT token'dan diyetisyen kimliği otomatik alınır.\n\n## HTTP Method & Path\n`GET /exapi/dietitian/slot`\n\n## Yetkilendirme\nAuthentication gereklidir. Sadece **DIETITIAN** rolüne sahip kullanıcılar erişebilir.\n\n## Query Parameters\n- **page** (integer): Sayfa numarası, 0-indexed (varsayılan: 0)\n- **size** (integer): Sayfa başına kayıt sayısı (varsayılan: 20)\n- **sort** (string): Sıralama (varsayılan: `date,asc`)\n\n## Response\n\n### Başarılı (200)\n```json\n{\n  \"content\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"date\": \"2026-07-01\",\n      \"startTime\": \"09:00:00\",\n      \"endTime\": \"10:00:00\",\n      \"booked\": false\n    }\n  ],\n  \"totalElements\": 15,\n  \"totalPages\": 1,\n  \"page\": 0,\n  \"size\": 20,\n  \"last\": true\n}\n```\n\n## Örnek İstek\n```bash\ncurl -X GET \"http://localhost:8080/exapi/dietitian/slot?page=0&size=20&sort=date,asc\" \\\n  -H \"Authorization: Bearer eyJhbGci...\"\n```"
+                  }
+                },
+                {
+                  "name": "Tarihe Göre Slotlar",
+                  "ordering": 15,
+                  "api": {
+                    "id": "ds002c4d5",
+                    "method": "get",
+                    "path": "/exapi/dietitian/slot/date/{date}",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer token (DIETITIAN rolü gerekli)",
+                        "schema": { "type": "string", "example": "Bearer eyJhbGciOiJSUzI1NiJ9..." }
+                      },
+                      {
+                        "name": "date",
+                        "in": "path",
+                        "required": true,
+                        "description": "Sorgulanacak tarih (ISO 8601 formatı: yyyy-MM-dd)",
+                        "schema": { "type": "string", "format": "date", "example": "2026-07-01" }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "none"
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Başarılı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "format": "uuid", "description": "Slot benzersiz ID", "example": "550e8400-e29b-41d4-a716-446655440000" },
+                              "date": { "type": "string", "format": "date", "description": "Randevu tarihi", "example": "2026-07-01" },
+                              "startTime": { "type": "string", "format": "time", "description": "Başlangıç saati", "example": "09:00:00" },
+                              "endTime": { "type": "string", "format": "time", "description": "Bitiş saati", "example": "10:00:00" },
+                              "booked": { "type": "boolean", "description": "Rezerve edilip edilmediği", "example": false }
+                            },
+                            "x-apidog-orders": ["id", "date", "startTime", "endTime", "booked"]
+                          }
+                        }
+                      },
+                      {
+                        "code": 401,
+                        "name": "Yetkisiz",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Token gerekli" },
+                            "status": { "type": "integer", "example": 401 }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Tarihe Göre Slotlar\n\n## Genel Bakış\nGiriş yapan diyetisyenin belirtilen tarihteki tüm slotlarını getirir. Bir gün içindeki slot sayısı sınırlı olduğundan pagination uygulanmaz.\n\n## HTTP Method & Path\n`GET /exapi/dietitian/slot/date/{date}`\n\n## Yetkilendirme\nAuthentication gereklidir. Sadece **DIETITIAN** rolüne sahip kullanıcılar erişebilir.\n\n## Path Parameters\n- **date** (string, date): Sorgulanacak tarih — `yyyy-MM-dd` formatında (örn: `2026-07-01`)\n\n## Response\n\n### Başarılı (200)\n```json\n[\n  {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"date\": \"2026-07-01\",\n    \"startTime\": \"09:00:00\",\n    \"endTime\": \"10:00:00\",\n    \"booked\": false\n  },\n  {\n    \"id\": \"661f9511-f30c-52e5-b827-557766551111\",\n    \"date\": \"2026-07-01\",\n    \"startTime\": \"11:00:00\",\n    \"endTime\": \"12:00:00\",\n    \"booked\": true\n  }\n]\n```\n\n## Örnek İstek\n```bash\ncurl -X GET \"http://localhost:8080/exapi/dietitian/slot/date/2026-07-01\" \\\n  -H \"Authorization: Bearer eyJhbGci...\"\n```"
+                  }
+                },
+                {
+                  "name": "Slot Ekle",
+                  "ordering": 20,
+                  "api": {
+                    "id": "ds003e6f7",
+                    "method": "post",
+                    "path": "/exapi/dietitian/slot",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer token (DIETITIAN rolü gerekli)",
+                        "schema": { "type": "string", "example": "Bearer eyJhbGciOiJSUzI1NiJ9..." }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "required": ["date", "startTime", "endTime"],
+                        "properties": {
+                          "date": {
+                            "type": "string",
+                            "format": "date",
+                            "description": "Randevu tarihi — bugün veya gelecekte olmalı (@FutureOrPresent)",
+                            "example": "2026-07-01"
+                          },
+                          "startTime": {
+                            "type": "string",
+                            "format": "time",
+                            "description": "Başlangıç saati — bitiş saatinden önce olmalı",
+                            "example": "09:00:00"
+                          },
+                          "endTime": {
+                            "type": "string",
+                            "format": "time",
+                            "description": "Bitiş saati — başlangıç saatinden sonra olmalı",
+                            "example": "10:00:00"
+                          }
+                        },
+                        "x-apidog-orders": ["date", "startTime", "endTime"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Başarılı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid", "description": "Oluşturulan slot ID", "example": "550e8400-e29b-41d4-a716-446655440000" },
+                            "date": { "type": "string", "format": "date", "description": "Randevu tarihi", "example": "2026-07-01" },
+                            "startTime": { "type": "string", "format": "time", "description": "Başlangıç saati", "example": "09:00:00" },
+                            "endTime": { "type": "string", "format": "time", "description": "Bitiş saati", "example": "10:00:00" },
+                            "booked": { "type": "boolean", "description": "Rezerve durumu (yeni slotlar false)", "example": false }
+                          },
+                          "x-apidog-orders": ["id", "date", "startTime", "endTime", "booked"]
+                        }
+                      },
+                      {
+                        "code": 400,
+                        "name": "Geçersiz İstek",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "Start time must be before end time: 10:00:00 - 09:00:00" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 401,
+                        "name": "Yetkisiz",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Token gerekli" },
+                            "status": { "type": "integer", "example": 401 }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Slot Ekle\n\n## Genel Bakış\nDiyetisyen için tek bir müsait zaman dilimi oluşturur. JWT token'dan diyetisyen kimliği otomatik alınır.\n\n## HTTP Method & Path\n`POST /exapi/dietitian/slot`\n\n## Yetkilendirme\nAuthentication gereklidir. Sadece **DIETITIAN** rolüne sahip kullanıcılar erişebilir.\n\n## Validasyon Kuralları\n- **date**: Gerekli, bugün veya gelecek bir tarih olmalı\n- **startTime**: Gerekli\n- **endTime**: Gerekli, startTime'dan sonra olmalı\n- Aynı diyetisyende aynı gün çakışan slot oluşturulamaz\n\n## Request Body\n```json\n{\n  \"date\": \"2026-07-01\",\n  \"startTime\": \"09:00:00\",\n  \"endTime\": \"10:00:00\"\n}\n```\n\n## Response\n\n### Başarılı (200)\n```json\n{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"date\": \"2026-07-01\",\n  \"startTime\": \"09:00:00\",\n  \"endTime\": \"10:00:00\",\n  \"booked\": false\n}\n```\n\n### Hata (400) — Geçersiz saat aralığı\n```json\n{\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Start time must be before end time: 10:00:00 - 09:00:00\"\n}\n```\n\n### Hata (400) — Çakışan slot\n```json\n{\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Slot overlaps with an existing slot: 09:30:00 - 10:30:00\"\n}\n```\n\n## Örnek İstek\n```bash\ncurl -X POST \"http://localhost:8080/exapi/dietitian/slot\" \\\n  -H \"Authorization: Bearer eyJhbGci...\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"date\": \"2026-07-01\",\n    \"startTime\": \"09:00:00\",\n    \"endTime\": \"10:00:00\"\n  }'\n```"
+                  }
+                },
+                {
+                  "name": "Toplu Slot Ekle",
+                  "ordering": 25,
+                  "api": {
+                    "id": "ds004g8h9",
+                    "method": "post",
+                    "path": "/exapi/dietitian/slot/batch",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer token (DIETITIAN rolü gerekli)",
+                        "schema": { "type": "string", "example": "Bearer eyJhbGciOiJSUzI1NiJ9..." }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "array",
+                        "description": "Eklenecek slot listesi (maksimum 50 adet)",
+                        "items": {
+                          "type": "object",
+                          "required": ["date", "startTime", "endTime"],
+                          "properties": {
+                            "date": {
+                              "type": "string",
+                              "format": "date",
+                              "description": "Randevu tarihi — bugün veya gelecekte olmalı",
+                              "example": "2026-07-01"
+                            },
+                            "startTime": {
+                              "type": "string",
+                              "format": "time",
+                              "description": "Başlangıç saati",
+                              "example": "09:00:00"
+                            },
+                            "endTime": {
+                              "type": "string",
+                              "format": "time",
+                              "description": "Bitiş saati — başlangıçtan sonra olmalı",
+                              "example": "10:00:00"
+                            }
+                          },
+                          "x-apidog-orders": ["date", "startTime", "endTime"]
+                        }
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Başarılı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "array",
+                          "description": "Oluşturulan slotların listesi",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "format": "uuid", "description": "Slot ID", "example": "550e8400-e29b-41d4-a716-446655440000" },
+                              "date": { "type": "string", "format": "date", "description": "Randevu tarihi", "example": "2026-07-01" },
+                              "startTime": { "type": "string", "format": "time", "description": "Başlangıç saati", "example": "09:00:00" },
+                              "endTime": { "type": "string", "format": "time", "description": "Bitiş saati", "example": "10:00:00" },
+                              "booked": { "type": "boolean", "description": "Rezerve durumu", "example": false }
+                            },
+                            "x-apidog-orders": ["id", "date", "startTime", "endTime", "booked"]
+                          }
+                        }
+                      },
+                      {
+                        "code": 400,
+                        "name": "Geçersiz İstek",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "Batch size cannot exceed 50" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 401,
+                        "name": "Yetkisiz",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Token gerekli" },
+                            "status": { "type": "integer", "example": 401 }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Toplu Slot Ekle\n\n## Genel Bakış\nDiyetisyen için birden fazla müsait zaman dilimini tek seferde oluşturur. Tüm slotlar atomik olarak kaydedilir (biri başarısız olursa hiçbiri kaydedilmez).\n\n## HTTP Method & Path\n`POST /exapi/dietitian/slot/batch`\n\n## Yetkilendirme\nAuthentication gereklidir. Sadece **DIETITIAN** rolüne sahip kullanıcılar erişebilir.\n\n## Kısıtlamalar\n- Maksimum **50 slot** tek seferde gönderilebilir\n- Her slot için aynı validasyon kuralları geçerlidir\n- Listede herhangi bir slot çakışıyorsa tüm istek reddedilir\n\n## Request Body\n```json\n[\n  {\n    \"date\": \"2026-07-01\",\n    \"startTime\": \"09:00:00\",\n    \"endTime\": \"10:00:00\"\n  },\n  {\n    \"date\": \"2026-07-01\",\n    \"startTime\": \"11:00:00\",\n    \"endTime\": \"12:00:00\"\n  },\n  {\n    \"date\": \"2026-07-02\",\n    \"startTime\": \"14:00:00\",\n    \"endTime\": \"15:00:00\"\n  }\n]\n```\n\n## Response\n\n### Başarılı (200)\n```json\n[\n  {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"date\": \"2026-07-01\",\n    \"startTime\": \"09:00:00\",\n    \"endTime\": \"10:00:00\",\n    \"booked\": false\n  }\n]\n```\n\n## Örnek İstek\n```bash\ncurl -X POST \"http://localhost:8080/exapi/dietitian/slot/batch\" \\\n  -H \"Authorization: Bearer eyJhbGci...\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '[{\"date\":\"2026-07-01\",\"startTime\":\"09:00:00\",\"endTime\":\"10:00:00\"},{\"date\":\"2026-07-01\",\"startTime\":\"11:00:00\",\"endTime\":\"12:00:00\"}]'\n```"
+                  }
+                },
+                {
+                  "name": "Slot Sil",
+                  "ordering": 40,
+                  "api": {
+                    "id": "ds005i0j1",
+                    "method": "delete",
+                    "path": "/exapi/dietitian/slot/{slotId}",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer token (DIETITIAN rolü gerekli)",
+                        "schema": { "type": "string", "example": "Bearer eyJhbGciOiJSUzI1NiJ9..." }
+                      },
+                      {
+                        "name": "slotId",
+                        "in": "path",
+                        "required": true,
+                        "description": "Silinecek slotun UUID'i",
+                        "schema": { "type": "string", "format": "uuid", "example": "550e8400-e29b-41d4-a716-446655440000" }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "none"
+                    },
+                    "responses": [
+                      {
+                        "code": 204,
+                        "name": "Başarılı — İçerik Yok",
+                        "contentType": "application/json",
+                        "jsonSchema": {}
+                      },
+                      {
+                        "code": 400,
+                        "name": "Geçersiz İstek",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "Cannot delete a booked slot: 550e8400-e29b-41d4-a716-446655440000" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Erişim Reddedildi",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 403 },
+                            "error": { "type": "string", "example": "Slot does not belong to the current dietitian" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 404,
+                        "name": "Bulunamadı",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 404 },
+                            "error": { "type": "string", "example": "Slot Not Found!" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Slot Sil\n\n## Genel Bakış\nBelirtilen ID'ye sahip tek bir slotu siler. Slot diyetisyene ait olmalı ve rezerve edilmemiş olmalıdır.\n\n## HTTP Method & Path\n`DELETE /exapi/dietitian/slot/{slotId}`\n\n## Yetkilendirme\nAuthentication gereklidir. Sadece **DIETITIAN** rolüne sahip kullanıcılar erişebilir.\n\n## Güvenlik Kontrolleri\n- Slot diyetisyene **ait değilse** → 403 (IDOR koruması)\n- Slot zaten **rezerve edilmişse** → 400 (hasta randevusu korunur)\n- Slot **bulunamazsa** → 404\n\n## Path Parameters\n- **slotId** (UUID): Silinecek slotun benzersiz kimliği\n\n## Response\n- **204 No Content**: Başarıyla silindi\n\n## Örnek İstek\n```bash\ncurl -X DELETE \"http://localhost:8080/exapi/dietitian/slot/550e8400-e29b-41d4-a716-446655440000\" \\\n  -H \"Authorization: Bearer eyJhbGci...\"\n```"
+                  }
+                },
+                {
+                  "name": "Toplu Slot Sil",
+                  "ordering": 45,
+                  "api": {
+                    "id": "ds006k2l3",
+                    "method": "post",
+                    "path": "/exapi/dietitian/slot/batch-delete",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer token (DIETITIAN rolü gerekli)",
+                        "schema": { "type": "string", "example": "Bearer eyJhbGciOiJSUzI1NiJ9..." }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "array",
+                        "description": "Silinecek slot UUID listesi (maksimum 50 adet)",
+                        "items": {
+                          "type": "string",
+                          "format": "uuid",
+                          "example": "550e8400-e29b-41d4-a716-446655440000"
+                        }
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 204,
+                        "name": "Başarılı — İçerik Yok",
+                        "contentType": "application/json",
+                        "jsonSchema": {}
+                      },
+                      {
+                        "code": 400,
+                        "name": "Geçersiz İstek",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "One or more slots not found" }
+                          }
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Erişim Reddedildi",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "integer", "example": 403 },
+                            "error": { "type": "string", "example": "Slot does not belong to the current dietitian" }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Toplu Slot Sil\n\n## Genel Bakış\nBirden fazla slotu tek seferde siler. Tüm slotlar atomik olarak silinir — biri başarısız olursa hiçbiri silinmez. HTTP DELETE body uyumsuzluğu riski nedeniyle POST kullanılmıştır.\n\n## HTTP Method & Path\n`POST /exapi/dietitian/slot/batch-delete`\n\n## Yetkilendirme\nAuthentication gereklidir. Sadece **DIETITIAN** rolüne sahip kullanıcılar erişebilir.\n\n## Kısıtlamalar\n- Maksimum **50 slot** tek seferde gönderilebilir\n- Listede **olmayan** bir slot ID varsa tüm istek reddedilir\n- Herhangi bir slot **başka diyetisyene** aitse tüm istek reddedilir\n- **Rezerve edilmiş** slot içeriyorsa tüm istek reddedilir\n\n## Request Body\n```json\n[\n  \"550e8400-e29b-41d4-a716-446655440000\",\n  \"661f9511-f30c-52e5-b827-557766551111\",\n  \"772g0622-g41d-63f6-c938-668877662222\"\n]\n```\n\n## Response\n- **204 No Content**: Tüm slotlar başarıyla silindi\n\n## Örnek İstek\n```bash\ncurl -X POST \"http://localhost:8080/exapi/dietitian/slot/batch-delete\" \\\n  -H \"Authorization: Bearer eyJhbGci...\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '[\"550e8400-e29b-41d4-a716-446655440000\",\"661f9511-f30c-52e5-b827-557766551111\"]'\n```"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
