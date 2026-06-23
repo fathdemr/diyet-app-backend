@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.security.KeyPair;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -23,36 +25,40 @@ public class JwtService {
     private final JwtProperties jwtProperties;
     private final RedisTokenService redisTokenService;
 
-    // ── Access Token ──────────────────────────────────────────────────────────
 
+    // ── Access Token ──────────────────────────────────────────────────────────
     public String generateAccessToken(User user, String fullName) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + jwtProperties.getAccessTokenExpiration());
 
         return Jwts.builder()
-                .id(UUID.randomUUID().toString())           // jti
-                .subject(user.getId().toString())           // sub
+                .id(UUID.randomUUID().toString()) // jti
+                .subject(user.getId().toString()) // sub
                 .claims(buildClaims(user, fullName))
-                .issuedAt(now)                              // iat
-                .notBefore(now)                             // nbf
-                .expiration(expiry)                         // exp
+                .issuedAt(now) // iat
+                .notBefore(now) // nbf
+                .expiration(expiry) // exp
                 .signWith(rsaKeyPair.getPrivate(), Jwts.SIG.RS256)
                 .compact();
     }
 
-    // ── Refresh Token ─────────────────────────────────────────────────────────
-
+    // ── Refresh Token ──────────────────────────────────────────────────────────
     public String generateRefreshToken(User user) {
+        // Revoke all user tokens
         redisTokenService.revokeAllRefreshTokens(user.getId());
 
-        String token = UUID.randomUUID().toString();
-        redisTokenService.saveRefreshToken(token, user.getId());
-        return token;
+        // Generate new refresh token with secure random alg
+        byte[] randomBytes = new byte[64];
+        new SecureRandom().nextBytes(randomBytes);
+        String refreshToken = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+
+        // Save token in redis
+        redisTokenService.saveRefreshToken(refreshToken, user.getId());
+
+        return refreshToken;
     }
 
-
-    // ── Validation ────────────────────────────────────────────────────────────
-
+    // ── Validation ──────────────────────────────────────────────────────────
     public boolean validateToken(String token) {
         try {
             Claims claims = parseClaims(token);
@@ -72,24 +78,31 @@ public class JwtService {
     }
 
     // ── Revocation ────────────────────────────────────────────────────────────
-
     public void revokeAccessToken(String token) {
         Claims claims = parseClaims(token);
         long remaining = claims.getExpiration().getTime() - System.currentTimeMillis();
         redisTokenService.blacklistJti(claims.getId(), remaining);
     }
 
-    public void revokeAllUserTokens(User user, String currentAccessToken) {
-        revokeAccessToken(currentAccessToken);
+    public void revokeAllUsersTokens(String token, User user) {
+        revokeAccessToken(token);
         redisTokenService.revokeAllRefreshTokens(user.getId());
     }
 
-    public void revokeAllUserTokens(UUID userId, String currentAccessToken) {
-        revokeAccessToken(currentAccessToken);
+    public void revokeAllUsersTokens(String token, UUID userId) {
+        revokeAccessToken(token);
         redisTokenService.revokeAllRefreshTokens(userId);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+    private Map<String, Object> buildClaims(User user, String fullName) {
+        return Map.of(
+                "email", user.getEmail(),
+                "fullName", user.getFullName(),
+                "role", user.getRole(),
+                "id", user.getId()
+        );
+    }
 
     private Claims parseClaims(String token) {
         return Jwts.parser()
@@ -99,12 +112,4 @@ public class JwtService {
                 .getPayload();
     }
 
-    private Map<String, Object> buildClaims(User user, String fullName) {
-        return Map.of(
-                "email", user.getEmail(),
-                "fullName", fullName,
-                "role", user.getRole().name(),
-                "id", user.getId()
-        );
-    }
 }

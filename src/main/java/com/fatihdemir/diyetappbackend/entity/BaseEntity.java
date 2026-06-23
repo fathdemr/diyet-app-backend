@@ -1,42 +1,46 @@
 package com.fatihdemir.diyetappbackend.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import com.fatihdemir.diyetappbackend.helper.IpUtil;
+import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
+
+import lombok.Getter;
 
 @Getter
-@Setter
 @MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    @Column(name = "created_by", updatable = false)
-    private Long createdBy;
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdDate;
 
-    @Column(name = "created_by_name", updatable = false)
-    private String createdByName;
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime lastModifiedDate;
 
-    @Column(name = "created_ip", updatable = false)
-    private String createdIp;
+    private String clientIp;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @CreatedBy
+    private String createdBy;
 
-    @Column(name = "updated_by")
-    private Long updatedBy;
+    @LastModifiedBy
+    private String lastModifiedBy;
 
-    @Column(name = "updated_by_name")
-    private String updatedByName;
+    @PrePersist
+    public void prePersist() {
+        this.clientIp = IpUtil.getCurrentRequestIp();
+    }
 
-    @Column(name = "updated_ip")
-    private String updatedIp;
 }

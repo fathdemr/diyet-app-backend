@@ -1,38 +1,40 @@
 package com.fatihdemir.diyetappbackend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
-
-import java.util.UUID;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
 public class User extends BaseEntity {
 
-    @Id
-    @GeneratedValue
-    @UuidGenerator
-    private UUID id;
+    @Column(nullable = false, unique = true, length = 100)
+    private String email;
+
+    @Column
+    private String password;
+
+    @Column(nullable = false, length = 100)
+    private String fullName;
+
+    @Column(length = 100)
+    private String firstName;
+
+    @Column(length = 100)
+    private String lastName;
+
+    @Column(nullable = false, length = 100)
+    private String userName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role;
 
     private String fireBaseUid;
 
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    private String password;
-
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private LoginProvider loginProvider;
-
-    private boolean enabled = true;
 }

@@ -11,11 +11,7 @@ import org.springframework.util.FileCopyUtils;
 
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -23,15 +19,15 @@ import java.util.Base64;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(JwtProperties.class)
+@EnableConfigurationProperties({JwtProperties.class})
 public class RsaKeyConfig {
 
     private final JwtProperties jwtProperties;
 
     @Bean
-    public KeyPair rsaKeyPair() throws Exception {
+    public KeyPair keyPair() throws Exception {
         String privatePath = jwtProperties.getPrivateKeyPath();
-        String publicPath  = jwtProperties.getPublicKeyPath();
+        String publicPath = jwtProperties.getPublicKeyPath();
 
         if (privatePath != null && !privatePath.isBlank()) {
             return loadFromPemFiles(privatePath, publicPath);
@@ -43,21 +39,22 @@ public class RsaKeyConfig {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
         PrivateKey privateKey = keyFactory.generatePrivate(
-                new PKCS8EncodedKeySpec(decodePem(readClasspath(privatePath)))
+                new PKCS8EncodedKeySpec(decodePem(readClassPath(privatePath)))
         );
         PublicKey publicKey = keyFactory.generatePublic(
-                new X509EncodedKeySpec(decodePem(readClasspath(publicPath)))
+                new X509EncodedKeySpec(decodePem(readClassPath(publicPath)))
         );
 
         log.info("RSA anahtarları yüklendi: {}, {}", privatePath, publicPath);
         return new KeyPair(publicKey, privateKey);
     }
 
-    private String readClasspath(String path) throws Exception {
-        ClassPathResource resource = new ClassPathResource(path);
-        return FileCopyUtils.copyToString(
-                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)
-        );
+    private KeyPair generateAndLogKeyPair() throws Exception {
+        log.warn("RSA PEM dosyası bulunamadı. Yeni anahtar çifti üretiliyor (yalnızca geliştirme ortamı).");
+
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        return generator.generateKeyPair();
     }
 
     private byte[] decodePem(String pem) {
@@ -68,11 +65,12 @@ public class RsaKeyConfig {
         return Base64.getDecoder().decode(base64);
     }
 
-    private KeyPair generateAndLogKeyPair() throws Exception {
-        log.warn("RSA PEM dosyası bulunamadı. Yeni anahtar çifti üretiliyor (yalnızca geliştirme ortamı).");
-
-        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-        generator.initialize(2048);
-        return generator.generateKeyPair();
+    private String readClassPath(String path) throws Exception {
+        ClassPathResource resource = new ClassPathResource(path);
+        return FileCopyUtils.copyToString(
+                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)
+        );
     }
+
+
 }

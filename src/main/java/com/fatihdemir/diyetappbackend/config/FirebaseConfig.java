@@ -4,7 +4,6 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
-import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,25 +14,23 @@ import java.util.Objects;
 @Configuration
 public class FirebaseConfig {
 
-    @PostConstruct
-    public void init() throws IOException {
+    @Bean
+    public FirebaseApp firebaseApp() throws IOException {
+        if (!FirebaseApp.getApps().isEmpty()) {
+            return FirebaseApp.getApps().getFirst();
+        }
         try (InputStream serviceAccount = getClass().getClassLoader()
                 .getResourceAsStream("diyet-app-backend-firebase-adminsdk-fbsvc-f8a934633e.json")) {
-
-            Objects.requireNonNull(serviceAccount, "Firebase service account JSON bulunamadı");
-
+            Objects.requireNonNull(serviceAccount, "Firebase Service Account not found");
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();
-
-            if (FirebaseApp.getApps().isEmpty()) {
-                FirebaseApp.initializeApp(options);
-            }
+            return FirebaseApp.initializeApp(options);
         }
     }
 
     @Bean
-    public FirebaseAuth firebaseAuth() {
-        return FirebaseAuth.getInstance();
+    public FirebaseAuth firebaseAuth(FirebaseApp firebaseApp) {
+        return FirebaseAuth.getInstance(firebaseApp);
     }
 }

@@ -4,8 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,7 +19,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @SuppressWarnings("deprecation")
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
     private final JwtService jwtService;
 
     @Override
@@ -45,8 +44,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         var auth = new UsernamePasswordAuthenticationToken(
                 claims.getSubject(),
                 null,
-                List.of(new SimpleGrantedAuthority("ROLE_" + role))
-        );
+                List.of(new SimpleGrantedAuthority("ROLE_" + role)
+                ));
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         filterChain.doFilter(request, response);
