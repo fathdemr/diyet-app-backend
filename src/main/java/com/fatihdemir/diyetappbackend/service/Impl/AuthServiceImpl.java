@@ -12,11 +12,13 @@ import com.fatihdemir.diyetappbackend.service.AuthService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +48,18 @@ public class AuthServiceImpl implements AuthService {
 
         return new AuthResponse(accessToken, refreshToken, jwtProperties.getAccessTokenExpiration());
 
+    }
+
+    // ── Logout ───────────────────────────────────────────────────────────
+
+    public void logout(String token) {
+        if (token == null || token.isBlank()) {
+            return;
+        }
+
+        Claims claims = jwtService.extractClaims(token);
+
+        jwtService.revokeAllUsersTokens(token, UUID.fromString(claims.getSubject()));
     }
 
 

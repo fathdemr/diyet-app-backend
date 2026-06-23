@@ -64,7 +64,7 @@ public class JwtService {
             Claims claims = parseClaims(token);
             return !redisTokenService.isJtiBlacklisted(claims.getId());
         } catch (JwtException | IllegalArgumentException e) {
-            log.debug("Geçersiz token: {}", e.getMessage());
+            log.warn("Token doğrulama başarısız [{}]: {}", e.getClass().getSimpleName(), e.getMessage());
             return false;
         }
     }

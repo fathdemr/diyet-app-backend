@@ -38,6 +38,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        request.setAttribute("jwt_token", token);
+
         var claims = jwtService.extractClaims(token);
         String role = (String) claims.get("role");
 

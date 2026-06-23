@@ -29,14 +29,16 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // public api
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // public endpoints
+                        .requestMatchers("/api/**").permitAll()
 
-                        // role based
-                        .requestMatchers("/api/dietitian/**").hasRole("DIETITIAN")
-                        .requestMatchers("/api/patient/**").hasRole("PATIENT")
+                        // role based private endpoints (specific rules first)
+                        .requestMatchers("/exapi/dietitian/**").hasRole("DIETITIAN")
+                        .requestMatchers("/exapi/client/**").hasRole("CLIENT")
 
-                        // any request need login
+                        // catch-all for other /exapi/** endpoints
+                        .requestMatchers("/exapi/**").authenticated()
+
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
