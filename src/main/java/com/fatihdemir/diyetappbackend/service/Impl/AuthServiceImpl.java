@@ -3,8 +3,8 @@ package com.fatihdemir.diyetappbackend.service.Impl;
 import com.fatihdemir.diyetappbackend.dto.auth.AuthResponse;
 import com.fatihdemir.diyetappbackend.dto.auth.OAuthRequest;
 import com.fatihdemir.diyetappbackend.entity.*;
-import com.fatihdemir.diyetappbackend.repository.ClientRepository;
 import com.fatihdemir.diyetappbackend.repository.DietitianRepository;
+import com.fatihdemir.diyetappbackend.repository.PatientRepository;
 import com.fatihdemir.diyetappbackend.repository.UserRepository;
 import com.fatihdemir.diyetappbackend.security.JwtProperties;
 import com.fatihdemir.diyetappbackend.security.JwtService;
@@ -25,7 +25,7 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
 
     private final DietitianRepository dietitianRepository;
-    private final ClientRepository clientRepository;
+    private final PatientRepository patientRepository;
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
@@ -47,7 +47,6 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = jwtService.generateRefreshToken(user);
 
         return new AuthResponse(accessToken, refreshToken, jwtProperties.getAccessTokenExpiration());
-
     }
 
     // ── Logout ───────────────────────────────────────────────────────────
@@ -123,10 +122,10 @@ public class AuthServiceImpl implements AuthService {
             Dietitian dietitian = new Dietitian();
             dietitian.setUser(user);
             dietitianRepository.save(dietitian);
-        } else if (role == Role.CLIENT) {
-            Client client = new Client();
-            client.setUser(user);
-            clientRepository.save(client);
+        } else if (role == Role.PATIENT) {
+            Patient patient = new Patient();
+            patient.setUser(user);
+            patientRepository.save(patient);
         }
 
         return user;

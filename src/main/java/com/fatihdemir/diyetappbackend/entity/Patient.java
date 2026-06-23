@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Entity
 @Data
 @NoArgsConstructor
-public class Client extends BaseEntity {
+public class Patient extends BaseEntity {
 
     private LocalDate birthDay;
     private Double height;
@@ -23,6 +23,5 @@ public class Client extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
-
 
 }

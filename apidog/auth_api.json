@@ -7,7 +7,7 @@
   },
   "info": {
     "name": "Auth API",
-    "description": "Firebase OAuth tabanlı kimlik doğrulama. Diyetisyen ve danışan girişi için ayrı endpoint'ler.",
+    "description": "Firebase OAuth tabanlı kimlik doğrulama ve oturum yönetimi",
     "mockRule": {
       "rules": [],
       "enableSystemRule": true
@@ -32,7 +32,7 @@
                   "api": {
                     "id": "a1b2c3d4",
                     "method": "post",
-                    "path": "/api/auth/login/dietetian",
+                    "path": "/api/auth/login/dietitian",
                     "auth": null,
                     "parameters": [],
                     "requestBody": {
@@ -61,7 +61,7 @@
                             "accessToken": {
                               "type": "string",
                               "description": "JWT access token (RSA-256 imzalı)",
-                              "example": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyLWlkLTEyMyIsInJvbGUiOiJESUVUSVRJQU4iLCJpYXQiOjE2NjAwMDAwMDAsImV4cCI6MTY2MDA4NjQwMH0.signature"
+                              "example": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyLWlkLTEyMyIsInJvbGUiOiJESUVUSVRJQU4ifQ.signature"
                             },
                             "refreshToken": {
                               "type": "string",
@@ -77,7 +77,7 @@
                               "type": "integer",
                               "format": "int64",
                               "description": "Access token geçerlilik süresi (saniye cinsinden)",
-                              "example": 86400
+                              "example": 900
                             }
                           },
                           "x-apidog-orders": ["accessToken", "refreshToken", "tokenType", "expiresIn"]
@@ -90,23 +90,10 @@
                         "jsonSchema": {
                           "type": "object",
                           "properties": {
-                            "timestamp": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2026-06-23T10:30:00"
-                            },
-                            "status": {
-                              "type": "integer",
-                              "example": 400
-                            },
-                            "error": {
-                              "type": "string",
-                              "example": "Bad Request"
-                            },
-                            "message": {
-                              "type": "string",
-                              "example": "firebaseToken: boş olamaz"
-                            }
+                            "timestamp": { "type": "string", "format": "date-time", "example": "2026-06-23T10:30:00" },
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "firebaseToken: boş olamaz" }
                           },
                           "x-apidog-orders": ["timestamp", "status", "error", "message"]
                         }
@@ -118,38 +105,25 @@
                         "jsonSchema": {
                           "type": "object",
                           "properties": {
-                            "timestamp": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2026-06-23T10:30:00"
-                            },
-                            "status": {
-                              "type": "integer",
-                              "example": 401
-                            },
-                            "error": {
-                              "type": "string",
-                              "example": "Unauthorized"
-                            },
-                            "message": {
-                              "type": "string",
-                              "example": "Geçersiz Firebase token"
-                            }
+                            "timestamp": { "type": "string", "format": "date-time", "example": "2026-06-23T10:30:00" },
+                            "status": { "type": "integer", "example": 401 },
+                            "error": { "type": "string", "example": "Unauthorized" },
+                            "message": { "type": "string", "example": "Geçersiz Firebase token" }
                           },
                           "x-apidog-orders": ["timestamp", "status", "error", "message"]
                         }
                       }
                     ],
-                    "description": "# Diyetisyen Girişi\n\n## Genel Bakış\nFirebase Authentication token'ı ile diyetisyen rolünde giriş yap. İlk girişte diyetisyen hesabı otomatik olarak oluşturulur (kayıt ayrı bir endpoint gerektirmez).\n\n## HTTP Method & Path\n`POST /api/auth/login/dietetian`\n\n## Authentication\nBu endpoint authentication gerektirmez — giriş endpoint'idir.\n\n## Request Body\n\n### Gerekli Alanlar\n- **firebaseToken** (string): Firebase Authentication'dan alınan ID token. Firebase SDK ile `getIdToken()` çağrısından elde edilir.\n\n## Response\n\n### Başarılı (200)\n```json\n{\n  \"accessToken\": \"eyJhbGciOiJSUzI1NiJ9...\",\n  \"refreshToken\": \"d4e5f6a7b8c9d0e1f2...\",\n  \"tokenType\": \"Bearer\",\n  \"expiresIn\": 86400\n}\n```\n\n### Hata (400) — Eksik token\n```json\n{\n  \"timestamp\": \"2026-06-23T10:30:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"firebaseToken: boş olamaz\"\n}\n```\n\n### Hata (401) — Geçersiz Firebase token\n```json\n{\n  \"timestamp\": \"2026-06-23T10:30:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Geçersiz Firebase token\"\n}\n```\n\n## Örnek Request\n```bash\ncurl -X POST http://localhost:8080/api/auth/login/dietetian \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"firebaseToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6...\"\n  }'\n```\n\n## Notlar\n- Sonraki isteklerde `Authorization: Bearer {accessToken}` header'ı kullan\n- Access token süresi dolduğunda refresh token ile yenile\n- Kullanıcı ilk kez giriş yapıyorsa, sistem otomatik olarak diyetisyen profili oluşturur\n- Role: `DIETITIAN`"
+                    "description": "# Diyetisyen Girişi\n\n## Genel Bakış\nFirebase Authentication token'ı ile diyetisyen rolünde giriş yap. İlk girişte diyetisyen hesabı otomatik olarak oluşturulur.\n\n## HTTP Method & Path\n`POST /api/auth/login/dietitian`\n\n## Kimlik Doğrulama\nBu endpoint herkese açıktır, token gerekmez.\n\n## Request Body\n\n### Gerekli Alanlar\n- **firebaseToken** (string): Firebase SDK'dan `getIdToken()` ile alınan ID token\n\n## Örnek Request\n```bash\ncurl -X POST http://localhost:8080/api/auth/login/dietitian \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"firebaseToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6...\"}'```\n\n## Notlar\n- Sonraki isteklerde `Authorization: Bearer {accessToken}` header'ı kullan\n- `expiresIn` saniye cinsindendir (900 = 15 dakika)\n- Role: `DIETITIAN`"
                   }
                 },
                 {
-                  "name": "Danışan Girişi",
+                  "name": "Hasta Girişi",
                   "ordering": 20,
                   "api": {
                     "id": "e5f6g7h8",
                     "method": "post",
-                    "path": "/api/auth/login/client",
+                    "path": "/api/auth/login/patient",
                     "auth": null,
                     "parameters": [],
                     "requestBody": {
@@ -178,7 +152,7 @@
                             "accessToken": {
                               "type": "string",
                               "description": "JWT access token (RSA-256 imzalı)",
-                              "example": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyLWlkLTQ1NiIsInJvbGUiOiJDTElFTlQiLCJpYXQiOjE2NjAwMDAwMDAsImV4cCI6MTY2MDA4NjQwMH0.signature"
+                              "example": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyLWlkLTQ1NiIsInJvbGUiOiJQQVRJRU5UIn0.signature"
                             },
                             "refreshToken": {
                               "type": "string",
@@ -194,7 +168,7 @@
                               "type": "integer",
                               "format": "int64",
                               "description": "Access token geçerlilik süresi (saniye cinsinden)",
-                              "example": 86400
+                              "example": 900
                             }
                           },
                           "x-apidog-orders": ["accessToken", "refreshToken", "tokenType", "expiresIn"]
@@ -207,23 +181,10 @@
                         "jsonSchema": {
                           "type": "object",
                           "properties": {
-                            "timestamp": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2026-06-23T10:30:00"
-                            },
-                            "status": {
-                              "type": "integer",
-                              "example": 400
-                            },
-                            "error": {
-                              "type": "string",
-                              "example": "Bad Request"
-                            },
-                            "message": {
-                              "type": "string",
-                              "example": "firebaseToken: boş olamaz"
-                            }
+                            "timestamp": { "type": "string", "format": "date-time", "example": "2026-06-23T10:30:00" },
+                            "status": { "type": "integer", "example": 400 },
+                            "error": { "type": "string", "example": "Bad Request" },
+                            "message": { "type": "string", "example": "firebaseToken: boş olamaz" }
                           },
                           "x-apidog-orders": ["timestamp", "status", "error", "message"]
                         }
@@ -235,29 +196,63 @@
                         "jsonSchema": {
                           "type": "object",
                           "properties": {
-                            "timestamp": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2026-06-23T10:30:00"
-                            },
-                            "status": {
-                              "type": "integer",
-                              "example": 401
-                            },
-                            "error": {
-                              "type": "string",
-                              "example": "Unauthorized"
-                            },
-                            "message": {
-                              "type": "string",
-                              "example": "Geçersiz Firebase token"
-                            }
+                            "timestamp": { "type": "string", "format": "date-time", "example": "2026-06-23T10:30:00" },
+                            "status": { "type": "integer", "example": 401 },
+                            "error": { "type": "string", "example": "Unauthorized" },
+                            "message": { "type": "string", "example": "Geçersiz Firebase token" }
                           },
                           "x-apidog-orders": ["timestamp", "status", "error", "message"]
                         }
                       }
                     ],
-                    "description": "# Danışan Girişi\n\n## Genel Bakış\nFirebase Authentication token'ı ile danışan (client) rolünde giriş yap. İlk girişte danışan hesabı otomatik olarak oluşturulur (kayıt ayrı bir endpoint gerektirmez).\n\n## HTTP Method & Path\n`POST /api/auth/login/client`\n\n## Authentication\nBu endpoint authentication gerektirmez — giriş endpoint'idir.\n\n## Request Body\n\n### Gerekli Alanlar\n- **firebaseToken** (string): Firebase Authentication'dan alınan ID token. Firebase SDK ile `getIdToken()` çağrısından elde edilir.\n\n## Response\n\n### Başarılı (200)\n```json\n{\n  \"accessToken\": \"eyJhbGciOiJSUzI1NiJ9...\",\n  \"refreshToken\": \"f1a2b3c4d5e6f7a8b9...\",\n  \"tokenType\": \"Bearer\",\n  \"expiresIn\": 86400\n}\n```\n\n### Hata (400) — Eksik token\n```json\n{\n  \"timestamp\": \"2026-06-23T10:30:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"firebaseToken: boş olamaz\"\n}\n```\n\n### Hata (401) — Geçersiz Firebase token\n```json\n{\n  \"timestamp\": \"2026-06-23T10:30:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Geçersiz Firebase token\"\n}\n```\n\n## Örnek Request\n```bash\ncurl -X POST http://localhost:8080/api/auth/login/client \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"firebaseToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6...\"\n  }'\n```\n\n## Notlar\n- Sonraki isteklerde `Authorization: Bearer {accessToken}` header'ı kullan\n- Access token süresi dolduğunda refresh token ile yenile\n- Kullanıcı ilk kez giriş yapıyorsa, sistem otomatik olarak danışan profili oluşturur\n- Role: `CLIENT`"
+                    "description": "# Hasta Girişi\n\n## Genel Bakış\nFirebase Authentication token'ı ile hasta rolünde giriş yap. İlk girişte hasta hesabı otomatik olarak oluşturulur.\n\n## HTTP Method & Path\n`POST /api/auth/login/patient`\n\n## Kimlik Doğrulama\nBu endpoint herkese açıktır, token gerekmez.\n\n## Request Body\n\n### Gerekli Alanlar\n- **firebaseToken** (string): Firebase SDK'dan `getIdToken()` ile alınan ID token\n\n## Örnek Request\n```bash\ncurl -X POST http://localhost:8080/api/auth/login/patient \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"firebaseToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6...\"}'```\n\n## Notlar\n- Sonraki isteklerde `Authorization: Bearer {accessToken}` header'ı kullan\n- `expiresIn` saniye cinsindendir (900 = 15 dakika)\n- Role: `PATIENT`"
+                  }
+                },
+                {
+                  "name": "Çıkış",
+                  "ordering": 30,
+                  "api": {
+                    "id": "i9j0k1l2",
+                    "method": "post",
+                    "path": "/exapi/auth/logout",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer JWT access token",
+                        "schema": {
+                          "type": "string",
+                          "example": "Bearer eyJhbGciOiJSUzI1NiJ9..."
+                        }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "none"
+                    },
+                    "responses": [
+                      {
+                        "code": 204,
+                        "name": "Çıkış Başarılı",
+                        "contentType": "application/json",
+                        "jsonSchema": {}
+                      },
+                      {
+                        "code": 401,
+                        "name": "Yetkisiz",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "error": { "type": "string", "example": "Token gerekli" },
+                            "status": { "type": "integer", "example": 401 }
+                          },
+                          "x-apidog-orders": ["error", "status"]
+                        }
+                      }
+                    ],
+                    "description": "# Çıkış Yap\n\n## Genel Bakış\nMevcut access token'ı geçersiz kılar ve kullanıcıya ait tüm refresh token'ları Redis'ten siler.\n\n## HTTP Method & Path\n`POST /exapi/auth/logout`\n\n## Kimlik Doğrulama\n**Authentication gereklidir.** `Authorization: Bearer <token>` header'ı zorunludur.\n\n## Notlar\n- Access token JTI bazında Redis blacklist'e eklenir\n- Kullanıcıya ait tüm refresh token'lar silinir\n- Başarılı çıkışta body dönmez (204 No Content)\n- Çıkış sonrası aynı token ile istek atmak 401 döndürür\n\n## Örnek Request\n```bash\ncurl -X POST http://localhost:8080/exapi/auth/logout \\\n  -H \"Authorization: Bearer eyJhbGciOiJSUzI1NiJ9...\"```"
                   }
                 }
               ]

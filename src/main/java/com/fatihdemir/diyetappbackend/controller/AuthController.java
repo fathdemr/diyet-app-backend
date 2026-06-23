@@ -25,9 +25,9 @@ public class AuthController extends BaseController {
         return ResponseEntity.ok(authService.oauthLogin(request, Role.DIETITIAN));
     }
 
-    @PostMapping("/api/auth/login/client")
-    public ResponseEntity<AuthResponse> clientLogin(@Valid @RequestBody OAuthRequest request) {
-        return ResponseEntity.ok(authService.oauthLogin(request, Role.CLIENT));
+    @PostMapping("/api/auth/login/patient")
+    public ResponseEntity<AuthResponse> patientLogin(@Valid @RequestBody OAuthRequest request) {
+        return ResponseEntity.ok(authService.oauthLogin(request, Role.PATIENT));
     }
 
     // ── Private API (/exapi/**) ──────────────────────────────────────────────

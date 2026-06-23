@@ -34,7 +34,7 @@ public class SecurityConfig {
 
                         // role based private endpoints (specific rules first)
                         .requestMatchers("/exapi/dietitian/**").hasRole("DIETITIAN")
-                        .requestMatchers("/exapi/client/**").hasRole("CLIENT")
+                        .requestMatchers("/exapi/patient/**").hasRole("PATIENT")
 
                         // catch-all for other /exapi/** endpoints
                         .requestMatchers("/exapi/**").authenticated()
