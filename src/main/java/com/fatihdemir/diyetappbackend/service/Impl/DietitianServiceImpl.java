@@ -5,6 +5,7 @@ import com.fatihdemir.diyetappbackend.dto.dietitian.DietitianProfileUpdateRespon
 import com.fatihdemir.diyetappbackend.repository.DietitianRepository;
 import com.fatihdemir.diyetappbackend.repository.UserRepository;
 import com.fatihdemir.diyetappbackend.service.DietitianService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +39,7 @@ public class DietitianServiceImpl implements DietitianService {
         return DietitianProfileUpdateResponse.from(dietitian);
     }
 
+    @Transactional
     public void deleteProfile(UUID id) {
         var dietitian = dietitianRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Dietitian Not Found!"));

@@ -3,5 +3,6 @@ package com.fatihdemir.diyetappbackend.entity;
 public enum AppointmentStatus {
     PENDING,
     APPROVED,
-    REJECTED
+    REJECTED,
+    CANCELLED
 }

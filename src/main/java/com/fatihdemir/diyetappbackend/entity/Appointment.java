@@ -1,37 +1,61 @@
 package com.fatihdemir.diyetappbackend.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "appointments")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Appointment extends BaseEntity {
 
-    @Column(nullable = false, length = 100)
-    private LocalDate appointmentDate;
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "slot_id", nullable = false, unique = true)
+    private AvailableSlot slot;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "patient_id", nullable = false)
+    private Patient patient;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "dietitian_id", nullable = false)
+    private Dietitian dietitian;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private AppointmentStatus status;
+    @Builder.Default
+    private AppointmentStatus status = AppointmentStatus.PENDING;
 
     private String cancelReason;
 
     public void approve() {
         if (this.status != AppointmentStatus.PENDING) {
-            throw new IllegalStateException("Cannot confirm order in status: " + this.status);
+            throw new IllegalStateException("Cannot approve appointment in status: " + this.status);
         }
         this.status = AppointmentStatus.APPROVED;
     }
 
-    public void reject() {
+    public void reject(String reason) {
         if (this.status == AppointmentStatus.REJECTED) {
-            throw new IllegalStateException("Cannot reject order in status: " + this.status);
+            throw new IllegalStateException("Cannot reject appointment in status: " + this.status);
         }
         this.status = AppointmentStatus.REJECTED;
+        this.cancelReason = reason;
     }
+
+    public void cancel(String reason) {
+        if (this.status == AppointmentStatus.REJECTED || this.status == AppointmentStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot cancel appointment in status: " + this.status);
+        }
+        this.status = AppointmentStatus.CANCELLED;
+        this.cancelReason = reason;
+    }
+
 }
