@@ -3,6 +3,8 @@ package com.fatihdemir.diyetappbackend.service.Impl;
 import com.fatihdemir.diyetappbackend.dto.auth.AuthResponse;
 import com.fatihdemir.diyetappbackend.dto.auth.OAuthRequest;
 import com.fatihdemir.diyetappbackend.entity.*;
+import com.fatihdemir.diyetappbackend.exception.FirebaseAuthException;
+import com.fatihdemir.diyetappbackend.exception.RoleConflictException;
 import com.fatihdemir.diyetappbackend.repository.DietitianRepository;
 import com.fatihdemir.diyetappbackend.repository.PatientRepository;
 import com.fatihdemir.diyetappbackend.repository.UserRepository;
@@ -10,7 +12,6 @@ import com.fatihdemir.diyetappbackend.security.JwtProperties;
 import com.fatihdemir.diyetappbackend.security.JwtService;
 import com.fatihdemir.diyetappbackend.service.AuthService;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -66,8 +67,8 @@ public class AuthServiceImpl implements AuthService {
     private FirebaseToken verifyFirebaseToken(String idToken) {
         try {
             return firebaseAuth.verifyIdToken(idToken);
-        } catch (FirebaseAuthException e) {
-            throw new IllegalArgumentException("Geçersiz Firebase token: " + e.getMessage(), e);
+        } catch (com.google.firebase.auth.FirebaseAuthException e) {
+            throw new FirebaseAuthException("Geçersiz Firebase token: " + e.getMessage());
         }
     }
 
@@ -89,15 +90,24 @@ public class AuthServiceImpl implements AuthService {
     private User findOrCreateUser(String uid, String email, String name, LoginProvider provider, Role role) {
         Optional<User> byUid = userRepository.findByFireBaseUid(uid);
         if (byUid.isPresent()) {
-            return byUid.get();
+            User existing = byUid.get();
+            if (existing.getRole() != role) {
+                throw new RoleConflictException(
+                        "Bu Firebase hesabı zaten " + existing.getRole().name() + " rolüyle kayıtlı.");
+            }
+            return existing;
         }
 
         Optional<User> byEmail = userRepository.findByEmail(email);
         if (byEmail.isPresent()) {
-            User user = byEmail.get();
-            user.setFireBaseUid(uid);
-            user.setLoginProvider(provider);
-            return userRepository.save(user);
+            User existing = byEmail.get();
+            if (existing.getRole() != role) {
+                throw new RoleConflictException(
+                        "Bu e-posta adresi zaten " + existing.getRole().name() + " rolüyle kayıtlı.");
+            }
+            existing.setFireBaseUid(uid);
+            existing.setLoginProvider(provider);
+            return userRepository.save(existing);
         }
 
         return buildNewUser(uid, email, name, provider, role);

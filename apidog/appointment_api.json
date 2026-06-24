@@ -1,0 +1,466 @@
+{
+  "apidogProject": "1.0.0",
+  "$schema": {
+    "app": "apidog",
+    "type": "project",
+    "version": "1.2.0"
+  },
+  "info": {
+    "name": "Appointment API",
+    "description": "Randevu yönetimi — oluşturma, onaylama, reddetme ve iptal etme işlemleri",
+    "mockRule": {
+      "rules": [],
+      "enableSystemRule": true
+    }
+  },
+  "apiCollection": [
+    {
+      "name": "Root",
+      "id": "root_collection",
+      "items": [
+        {
+          "name": "Appointment Management",
+          "id": "appointment_management_folder",
+          "items": [
+            {
+              "name": "Appointment",
+              "id": "appointment_entity_folder",
+              "items": [
+                {
+                  "name": "Randevu Oluştur",
+                  "ordering": 10,
+                  "api": {
+                    "id": "apt001abc",
+                    "method": "post",
+                    "path": "/exapi/patient/appointment",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer JWT token (PATIENT rolü gereklidir)",
+                        "schema": {
+                          "type": "string",
+                          "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "required": ["slotId"],
+                        "properties": {
+                          "slotId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "Rezerve edilmek istenen uygun slot'un UUID'si",
+                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                          }
+                        },
+                        "x-apidog-orders": ["slotId"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 200,
+                        "name": "Success",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": ["PENDING", "APPROVED", "REJECTED", "CANCELLED"],
+                              "description": "Randevu durumu. Oluşturulduğunda PENDING olarak döner.",
+                              "example": "PENDING"
+                            },
+                            "date": {
+                              "type": "string",
+                              "format": "date",
+                              "description": "Randevu tarihi (slot'tan türetilir)",
+                              "example": "2026-07-15"
+                            },
+                            "startTime": {
+                              "type": "string",
+                              "format": "time",
+                              "description": "Randevu başlangıç saati",
+                              "example": "10:00:00"
+                            },
+                            "endTime": {
+                              "type": "string",
+                              "format": "time",
+                              "description": "Randevu bitiş saati",
+                              "example": "10:30:00"
+                            }
+                          },
+                          "x-apidog-orders": ["status", "date", "startTime", "endTime"]
+                        }
+                      },
+                      {
+                        "code": 400,
+                        "name": "Bad Request",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "timestamp": {
+                              "type": "string",
+                              "format": "date-time",
+                              "example": "2026-07-15T10:00:00"
+                            },
+                            "status": {
+                              "type": "integer",
+                              "example": 400
+                            },
+                            "error": {
+                              "type": "string",
+                              "example": "Bad Request"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "slotId: must not be null"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "code": 409,
+                        "name": "Conflict",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "Slot is already booked"
+                            }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Randevu Oluştur\n\n## Genel Bakış\nHasta, diyetisyenin müsait slotlarından birini seçerek randevu talebi oluşturur. Slot aynı anda yalnızca bir hasta tarafından rezerve edilebilir (DB pessimistic lock ile çift rezervasyon engellenir). Oluşturulan randevu `PENDING` statüsünde kalır, diyetisyen onay/red verinceye kadar.\n\n## HTTP Method & Path\n`POST /exapi/patient/appointment`\n\n## Yetkilendirme\n- **Rol:** `PATIENT`\n- Bearer JWT token header'da gönderilmelidir\n\n## Request Body\n\n### Gerekli Alanlar\n- **slotId** (UUID): Rezerve edilmek istenen uygun slot'un ID'si. Diyetisyenin oluşturduğu ve henüz rezerve edilmemiş slotlar arasından seçilmelidir.\n\n## Response\n\n### Success (200)\n```json\n{\n  \"status\": \"PENDING\",\n  \"date\": \"2026-07-15\",\n  \"startTime\": \"10:00:00\",\n  \"endTime\": \"10:30:00\"\n}\n```\n\n### Conflict (409) — Slot zaten rezerve edilmiş\n```json\n{\n  \"message\": \"Slot is already booked\"\n}\n```\n\n## Örnek Request\n```bash\ncurl -X POST http://localhost:8080/exapi/patient/appointment \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Authorization: Bearer <token>\" \\\n  -d '{\n    \"slotId\": \"550e8400-e29b-41d4-a716-446655440000\"\n  }'\n```\n\n## Notlar\n- Slot rezerve edildikten sonra `booked = true` yapılır\n- Slot bilgileri (tarih, saat) response'da doğrudan dönülür\n- Randevu durumu yalnızca diyetisyen tarafından değiştirilebilir"
+                  }
+                },
+                {
+                  "name": "Randevu Onayla",
+                  "ordering": 20,
+                  "api": {
+                    "id": "apt002def",
+                    "method": "put",
+                    "path": "/exapi/dietitian/appointment/approve/{appointmentId}",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer JWT token (DIETITIAN rolü gereklidir)",
+                        "schema": {
+                          "type": "string",
+                          "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      },
+                      {
+                        "name": "appointmentId",
+                        "in": "path",
+                        "required": true,
+                        "description": "Onaylanacak randevunun UUID'si",
+                        "schema": {
+                          "type": "string",
+                          "format": "uuid",
+                          "example": "661f9511-e30c-42d5-b817-557766551111"
+                        }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "none"
+                    },
+                    "responses": [
+                      {
+                        "code": 204,
+                        "name": "No Content",
+                        "contentType": "application/json",
+                        "jsonSchema": {}
+                      },
+                      {
+                        "code": 403,
+                        "name": "Forbidden",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "You are not authorized to approve this appointment"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "code": 404,
+                        "name": "Not Found",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "Appointment not found"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "code": 409,
+                        "name": "Conflict",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "Cannot approve appointment in status: APPROVED"
+                            }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Randevu Onayla\n\n## Genel Bakış\nDiyetisyen, kendisine ait `PENDING` statüsündeki bir randevuyu onaylar. Randevu statüsü `APPROVED` olarak güncellenir. Yalnızca randevunun bağlı olduğu diyetisyen bu işlemi yapabilir.\n\n## HTTP Method & Path\n`PUT /exapi/dietitian/appointment/approve/{appointmentId}`\n\n## Yetkilendirme\n- **Rol:** `DIETITIAN`\n- Bearer JWT token header'da gönderilmelidir\n- Sadece kendi randevularını onaylayabilir\n\n## Path Parameters\n- **appointmentId** (UUID): Onaylanacak randevunun ID'si\n\n## Response\n\n### Success (204)\nBoş response body — randevu başarıyla onaylandı.\n\n### Forbidden (403) — Başka diyetisyenin randevusunu onaylamaya çalışma\n```json\n{\n  \"message\": \"You are not authorized to approve this appointment\"\n}\n```\n\n### Conflict (409) — Randevu zaten PENDING değil\n```json\n{\n  \"message\": \"Cannot approve appointment in status: APPROVED\"\n}\n```\n\n## Örnek Request\n```bash\ncurl -X PUT http://localhost:8080/exapi/dietitian/appointment/approve/661f9511-e30c-42d5-b817-557766551111 \\\n  -H \"Authorization: Bearer <token>\"\n```\n\n## Notlar\n- Yalnızca `PENDING` statüsündeki randevular onaylanabilir\n- Onay sonrası statü `APPROVED` olur, slot `booked = true` kalır"
+                  }
+                },
+                {
+                  "name": "Randevu Reddet",
+                  "ordering": 30,
+                  "api": {
+                    "id": "apt003ghi",
+                    "method": "put",
+                    "path": "/exapi/dietitian/appointment/reject/{appointmentId}",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer JWT token (DIETITIAN rolü gereklidir)",
+                        "schema": {
+                          "type": "string",
+                          "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      },
+                      {
+                        "name": "appointmentId",
+                        "in": "path",
+                        "required": true,
+                        "description": "Reddedilecek randevunun UUID'si",
+                        "schema": {
+                          "type": "string",
+                          "format": "uuid",
+                          "example": "661f9511-e30c-42d5-b817-557766551111"
+                        }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "required": ["reason"],
+                        "properties": {
+                          "reason": {
+                            "type": "string",
+                            "description": "Reddetme gerekçesi (boş bırakılamaz)",
+                            "example": "Belirtilen saatte başka bir randevum var."
+                          }
+                        },
+                        "x-apidog-orders": ["reason"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 204,
+                        "name": "No Content",
+                        "contentType": "application/json",
+                        "jsonSchema": {}
+                      },
+                      {
+                        "code": 400,
+                        "name": "Bad Request",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "reason: must not be blank"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Forbidden",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "You are not authorized to reject this appointment"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "code": 404,
+                        "name": "Not Found",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "Appointment not found"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "code": 409,
+                        "name": "Conflict",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "Cannot reject appointment in status: REJECTED"
+                            }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Randevu Reddet\n\n## Genel Bakış\nDiyetisyen, kendisine ait bir randevuyu gerekçe belirterek reddeder. Randevu statüsü `REJECTED` olarak güncellenir ve ilgili slot tekrar `booked = false` yapılarak diğer hastalar için müsait hale gelir.\n\n## HTTP Method & Path\n`PUT /exapi/dietitian/appointment/reject/{appointmentId}`\n\n## Yetkilendirme\n- **Rol:** `DIETITIAN`\n- Bearer JWT token header'da gönderilmelidir\n- Sadece kendi randevularını reddedebilir\n\n## Path Parameters\n- **appointmentId** (UUID): Reddedilecek randevunun ID'si\n\n## Request Body\n\n### Gerekli Alanlar\n- **reason** (string): Reddetme gerekçesi. Boş bırakılamaz.\n\n## Response\n\n### Success (204)\nBoş response body — randevu başarıyla reddedildi.\n\n### Conflict (409) — Randevu zaten REJECTED statüsünde\n```json\n{\n  \"message\": \"Cannot reject appointment in status: REJECTED\"\n}\n```\n\n## Örnek Request\n```bash\ncurl -X PUT http://localhost:8080/exapi/dietitian/appointment/reject/661f9511-e30c-42d5-b817-557766551111 \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Authorization: Bearer <token>\" \\\n  -d '{\n    \"reason\": \"Belirtilen saatte başka bir randevum var.\"\n  }'\n```\n\n## Notlar\n- Red sonrası slot `booked = false` yapılır, tekrar rezerve edilebilir\n- `cancelReason` alanı reddetme gerekçesiyle doldurulur\n- `REJECTED` statüsündeki randevu tekrar reddedilemez"
+                  }
+                },
+                {
+                  "name": "Randevu İptal Et",
+                  "ordering": 40,
+                  "api": {
+                    "id": "apt004jkl",
+                    "method": "put",
+                    "path": "/exapi/patient/appointment/cancel/{appointmentId}",
+                    "auth": null,
+                    "parameters": [
+                      {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer JWT token (PATIENT rolü gereklidir)",
+                        "schema": {
+                          "type": "string",
+                          "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      },
+                      {
+                        "name": "appointmentId",
+                        "in": "path",
+                        "required": true,
+                        "description": "İptal edilecek randevunun UUID'si",
+                        "schema": {
+                          "type": "string",
+                          "format": "uuid",
+                          "example": "661f9511-e30c-42d5-b817-557766551111"
+                        }
+                      }
+                    ],
+                    "requestBody": {
+                      "type": "application/json",
+                      "jsonSchema": {
+                        "type": "object",
+                        "required": ["reason"],
+                        "properties": {
+                          "reason": {
+                            "type": "string",
+                            "description": "İptal gerekçesi (boş bırakılamaz)",
+                            "example": "Programımda değişiklik oldu, başka bir güne almak istiyorum."
+                          }
+                        },
+                        "x-apidog-orders": ["reason"]
+                      }
+                    },
+                    "responses": [
+                      {
+                        "code": 204,
+                        "name": "No Content",
+                        "contentType": "application/json",
+                        "jsonSchema": {}
+                      },
+                      {
+                        "code": 400,
+                        "name": "Bad Request",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "reason: must not be blank"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "code": 403,
+                        "name": "Forbidden",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "You are not authorized to cancel this appointment"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "code": 404,
+                        "name": "Not Found",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "Appointment not found"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "code": 409,
+                        "name": "Conflict",
+                        "contentType": "application/json",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "Cannot cancel appointment in status: CANCELLED"
+                            }
+                          }
+                        }
+                      }
+                    ],
+                    "description": "# Randevu İptal Et\n\n## Genel Bakış\nHasta, kendi randevusunu gerekçe belirterek iptal eder. Randevu statüsü `CANCELLED` olarak güncellenir ve ilgili slot tekrar `booked = false` yapılarak başka hastalar için müsait hale gelir.\n\n## HTTP Method & Path\n`PUT /exapi/patient/appointment/cancel/{appointmentId}`\n\n## Yetkilendirme\n- **Rol:** `PATIENT`\n- Bearer JWT token header'da gönderilmelidir\n- Sadece kendi randevusunu iptal edebilir\n\n## Path Parameters\n- **appointmentId** (UUID): İptal edilecek randevunun ID'si\n\n## Request Body\n\n### Gerekli Alanlar\n- **reason** (string): İptal gerekçesi. Boş bırakılamaz.\n\n## Response\n\n### Success (204)\nBoş response body — randevu başarıyla iptal edildi.\n\n### Forbidden (403) — Başka hastanın randevusunu iptal etmeye çalışma\n```json\n{\n  \"message\": \"You are not authorized to cancel this appointment\"\n}\n```\n\n### Conflict (409) — Zaten CANCELLED veya REJECTED statüsünde\n```json\n{\n  \"message\": \"Cannot cancel appointment in status: CANCELLED\"\n}\n```\n\n## Örnek Request\n```bash\ncurl -X PUT http://localhost:8080/exapi/patient/appointment/cancel/661f9511-e30c-42d5-b817-557766551111 \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Authorization: Bearer <token>\" \\\n  -d '{\n    \"reason\": \"Programımda değişiklik oldu, başka bir güne almak istiyorum.\"\n  }'\n```\n\n## Notlar\n- İptal sonrası slot `booked = false` yapılır, başka hasta rezerve edebilir\n- `REJECTED` veya `CANCELLED` statüsündeki randevu iptal edilemez\n- `cancelReason` alanı iptal gerekçesiyle doldurulur"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

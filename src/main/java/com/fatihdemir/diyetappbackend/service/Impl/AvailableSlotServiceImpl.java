@@ -4,6 +4,7 @@ import com.fatihdemir.diyetappbackend.dto.slot.AvailableSlotRequest;
 import com.fatihdemir.diyetappbackend.dto.slot.AvailableSlotResponse;
 import com.fatihdemir.diyetappbackend.entity.AvailableSlot;
 import com.fatihdemir.diyetappbackend.entity.Dietitian;
+import com.fatihdemir.diyetappbackend.exception.*;
 import com.fatihdemir.diyetappbackend.repository.AvailableSlotRepository;
 import com.fatihdemir.diyetappbackend.repository.DietitianRepository;
 import com.fatihdemir.diyetappbackend.service.AvailableSlotService;
@@ -31,7 +32,7 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
         validateSlotTimes(request);
 
         Dietitian dietitian = dietitianRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Dietitian Not Found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Diyetisyen"));
 
         checkOverlap(dietitian.getId(), request);
 
@@ -49,13 +50,13 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
     @Transactional
     public List<AvailableSlotResponse> createAvailableSlots(UUID userId, List<AvailableSlotRequest> requests) {
         if (requests.size() > MAX_BATCH_SIZE) {
-            throw new IllegalArgumentException("Batch size cannot exceed " + MAX_BATCH_SIZE);
+            throw new BatchSizeExceededException(MAX_BATCH_SIZE);
         }
 
         requests.forEach(this::validateSlotTimes);
 
         Dietitian dietitian = dietitianRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Dietitian Not Found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Diyetisyen"));
 
         requests.forEach(req -> checkOverlap(dietitian.getId(), req));
 
@@ -76,7 +77,7 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
 
     public Page<AvailableSlotResponse> getDietitianSlots(UUID userId, Pageable pageable) {
         Dietitian dietitian = dietitianRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Dietitian Not Found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Diyetisyen"));
 
         return availableSlotRepository.findByDietitianId(dietitian.getId(), pageable)
                 .map(AvailableSlotResponse::from);
@@ -84,7 +85,7 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
 
     public List<AvailableSlotResponse> getDietitianSlotsByDate(UUID userId, LocalDate date) {
         Dietitian dietitian = dietitianRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Dietitian Not Found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Diyetisyen"));
 
         return availableSlotRepository.findByDietitianIdAndDate(dietitian.getId(), date)
                 .stream()
@@ -107,10 +108,10 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
     @Transactional
     public void deleteAvailableSlot(UUID userId, UUID slotId) {
         Dietitian dietitian = dietitianRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Dietitian Not Found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Diyetisyen"));
 
         AvailableSlot slot = availableSlotRepository.findById(slotId)
-                .orElseThrow(() -> new RuntimeException("Slot Not Found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Slot", slotId));
 
         validateSlotOwnershipAndBooking(slot, dietitian);
         availableSlotRepository.delete(slot);
@@ -119,16 +120,16 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
     @Transactional
     public void deleteAvailableSlots(UUID userId, List<UUID> slotIds) {
         if (slotIds.size() > MAX_BATCH_SIZE) {
-            throw new IllegalArgumentException("Batch size cannot exceed " + MAX_BATCH_SIZE);
+            throw new BatchSizeExceededException(MAX_BATCH_SIZE);
         }
 
         Dietitian dietitian = dietitianRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Dietitian Not Found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Diyetisyen"));
 
         List<AvailableSlot> slots = availableSlotRepository.findAllById(slotIds);
 
         if (slots.size() != slotIds.size()) {
-            throw new IllegalArgumentException("One or more slots not found");
+            throw new ResourceNotFoundException("Bir veya daha fazla slot bulunamadı");
         }
 
         slots.forEach(slot -> validateSlotOwnershipAndBooking(slot, dietitian));
@@ -137,17 +138,16 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
 
     private void validateSlotOwnershipAndBooking(AvailableSlot slot, Dietitian dietitian) {
         if (!slot.getDietitian().getId().equals(dietitian.getId())) {
-            throw new IllegalStateException("Slot does not belong to the current dietitian");
+            throw new AccessForbiddenException("Bu slot size ait değil");
         }
         if (slot.isBooked()) {
-            throw new IllegalStateException("Cannot delete a booked slot: " + slot.getId());
+            throw new SlotAlreadyBookedException(slot.getId());
         }
     }
 
     private void validateSlotTimes(AvailableSlotRequest request) {
         if (!request.startTime().isBefore(request.endTime())) {
-            throw new IllegalArgumentException(
-                    "Start time must be before end time: " + request.startTime() + " - " + request.endTime());
+            throw new InvalidSlotTimeException(request.startTime(), request.endTime());
         }
     }
 
@@ -155,8 +155,7 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
         boolean overlaps = availableSlotRepository.existsByDietitianIdAndDateAndStartTimeBeforeAndEndTimeAfter(
                 dietitianId, request.date(), request.endTime(), request.startTime());
         if (overlaps) {
-            throw new IllegalArgumentException(
-                    "Slot overlaps with an existing slot: " + request.startTime() + " - " + request.endTime());
+            throw new SlotConflictException(request.startTime(), request.endTime());
         }
     }
 }

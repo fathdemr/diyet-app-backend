@@ -1,5 +1,6 @@
 package com.fatihdemir.diyetappbackend.entity;
 
+import com.fatihdemir.diyetappbackend.exception.InvalidAppointmentStateException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,14 +38,14 @@ public class Appointment extends BaseEntity {
 
     public void approve() {
         if (this.status != AppointmentStatus.PENDING) {
-            throw new IllegalStateException("Cannot approve appointment in status: " + this.status);
+            throw new InvalidAppointmentStateException("onaylama", this.status);
         }
         this.status = AppointmentStatus.APPROVED;
     }
 
     public void reject(String reason) {
         if (this.status == AppointmentStatus.REJECTED) {
-            throw new IllegalStateException("Cannot reject appointment in status: " + this.status);
+            throw new InvalidAppointmentStateException("reddetme", this.status);
         }
         this.status = AppointmentStatus.REJECTED;
         this.cancelReason = reason;
@@ -52,7 +53,7 @@ public class Appointment extends BaseEntity {
 
     public void cancel(String reason) {
         if (this.status == AppointmentStatus.REJECTED || this.status == AppointmentStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot cancel appointment in status: " + this.status);
+            throw new InvalidAppointmentStateException("iptal etme", this.status);
         }
         this.status = AppointmentStatus.CANCELLED;
         this.cancelReason = reason;

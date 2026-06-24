@@ -5,6 +5,9 @@ import com.fatihdemir.diyetappbackend.dto.appointment.AppointmentResponse;
 import com.fatihdemir.diyetappbackend.entity.Appointment;
 import com.fatihdemir.diyetappbackend.entity.AvailableSlot;
 import com.fatihdemir.diyetappbackend.entity.Patient;
+import com.fatihdemir.diyetappbackend.exception.AccessForbiddenException;
+import com.fatihdemir.diyetappbackend.exception.ResourceNotFoundException;
+import com.fatihdemir.diyetappbackend.exception.SlotAlreadyBookedException;
 import com.fatihdemir.diyetappbackend.repository.AppointmentRepository;
 import com.fatihdemir.diyetappbackend.repository.AvailableSlotRepository;
 import com.fatihdemir.diyetappbackend.repository.PatientRepository;
@@ -27,14 +30,14 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     public AppointmentResponse createAppointment(UUID userId, AppointmentRequest request) {
         AvailableSlot slot = availableSlotRepository.findByIdWithLock(request.slotId())
-                .orElseThrow(() -> new IllegalArgumentException("Available slot not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Slot", request.slotId()));
 
         if (slot.isBooked()) {
-            throw new IllegalStateException("Slot is already booked");
+            throw new SlotAlreadyBookedException(request.slotId());
         }
 
         Patient patient = patientRepository.findByUser_Id(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Patient not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Hasta"));
 
         slot.setBooked(true);
 
@@ -51,10 +54,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     public void approveAppointment(UUID userId, UUID appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Randevu", appointmentId));
 
         if (!appointment.getDietitian().getUser().getId().equals(userId)) {
-            throw new IllegalStateException("You are not authorized to approve this appointment");
+            throw new AccessForbiddenException("Bu randevuyu onaylama yetkiniz yok");
         }
 
         appointment.approve();
@@ -64,10 +67,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     public void rejectAppointment(UUID userId, UUID appointmentId, String reason) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Randevu", appointmentId));
 
         if (!appointment.getDietitian().getUser().getId().equals(userId)) {
-            throw new IllegalStateException("You are not authorized to reject this appointment");
+            throw new AccessForbiddenException("Bu randevuyu reddetme yetkiniz yok");
         }
 
         appointment.reject(reason);
@@ -78,10 +81,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     public void cancelAppointment(UUID userId, UUID appointmentId, String reason) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Randevu", appointmentId));
 
         if (!appointment.getPatient().getUser().getId().equals(userId)) {
-            throw new IllegalStateException("You are not authorized to cancel this appointment");
+            throw new AccessForbiddenException("Bu randevuyu iptal etme yetkiniz yok");
         }
 
         appointment.cancel(reason);
