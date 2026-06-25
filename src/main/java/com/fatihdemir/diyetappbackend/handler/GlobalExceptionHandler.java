@@ -1,6 +1,6 @@
 package com.fatihdemir.diyetappbackend.handler;
 
-import com.fatihdemir.diyetappbackend.dto.common.ErrorResponse;
+import com.fatihdemir.diyetappbackend.dto.common.ApiResponse;
 import com.fatihdemir.diyetappbackend.exception.AppException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -16,35 +16,26 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException.class)
-    public ResponseEntity<ErrorResponse> handleAppException(AppException ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleAppException(AppException ex, HttpServletRequest request) {
         log.warn("[{}] {} — {}", ex.getErrorCode(), request.getRequestURI(), ex.getMessage());
         return ResponseEntity
                 .status(ex.getErrorCode().getHttpStatus())
-                .body(ErrorResponse.of(
-                        ex.getErrorCode().getHttpStatus().value(),
-                        ex.getErrorCode().name(),
-                        ex.getMessage(),
-                        request.getRequestURI()
-                ));
+                .body(ApiResponse.error(ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex,
-                                                           HttpServletRequest request) {
-        List<ErrorResponse.FieldError> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-                .map(fe -> new ErrorResponse.FieldError(fe.getField(), fe.getDefaultMessage()))
+    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
+        List<ApiResponse.FieldError> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> new ApiResponse.FieldError(fe.getField(), fe.getDefaultMessage()))
                 .toList();
-
         return ResponseEntity.badRequest()
-                .body(ErrorResponse.of(400, "VALIDATION_FAILED", "Giriş doğrulama hatası",
-                        request.getRequestURI(), fieldErrors));
+                .body(ApiResponse.error("Giriş doğrulama hatası", fieldErrors));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleGeneric(Exception ex, HttpServletRequest request) {
         log.error("Beklenmedik hata [{}]: {}", request.getRequestURI(), ex.getMessage(), ex);
         return ResponseEntity.internalServerError()
-                .body(ErrorResponse.of(500, "INTERNAL_ERROR", "Beklenmedik bir hata oluştu",
-                        request.getRequestURI()));
+                .body(ApiResponse.error("Beklenmedik bir hata oluştu"));
     }
 }

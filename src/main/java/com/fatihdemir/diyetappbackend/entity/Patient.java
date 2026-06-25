@@ -7,6 +7,7 @@ import jakarta.persistence.OneToOne;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -15,8 +16,8 @@ import java.time.LocalDate;
 public class Patient extends BaseEntity {
 
     private LocalDate birthDay;
-    private Double height;
-    private Double weight;
+    private BigDecimal height;
+    private BigDecimal weight;
     private String goal;
     private String gender;
 

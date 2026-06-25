@@ -3,6 +3,7 @@ package com.fatihdemir.diyetappbackend.controller;
 import com.fatihdemir.diyetappbackend.dto.dietitian.DietitianProfileUpdateRequest;
 import com.fatihdemir.diyetappbackend.dto.dietitian.DietitianProfileUpdateResponse;
 import com.fatihdemir.diyetappbackend.service.DietitianService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class DietitianController extends BaseController {
 
     @PutMapping("/update")
     public ResponseEntity<DietitianProfileUpdateResponse> updateProfile(
-            @RequestBody DietitianProfileUpdateRequest request) {
+            @RequestBody @Valid DietitianProfileUpdateRequest request) {
         return ResponseEntity.ok(dietitianService.updateProfile(getCurrentUserId(), request));
     }
 

@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,16 +25,16 @@ public class PatientSlotController {
     private final AvailableSlotService availableSlotService;
 
     @GetMapping("/{dietitianId}")
-    public ResponseEntity<Page<AvailableSlotResponse>> getAvailableSlots(
+    public Page<AvailableSlotResponse> getAvailableSlots(
             @PathVariable UUID dietitianId,
             @PageableDefault(size = 20, sort = "date", direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(availableSlotService.getAvailableSlotsForPatient(dietitianId, pageable));
+        return availableSlotService.getAvailableSlotsForPatient(dietitianId, pageable);
     }
 
     @GetMapping("/{dietitianId}/date/{date}")
-    public ResponseEntity<List<AvailableSlotResponse>> getAvailableSlotsByDate(
+    public List<AvailableSlotResponse> getAvailableSlotsByDate(
             @PathVariable UUID dietitianId,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(availableSlotService.getAvailableSlotsByDateForPatient(dietitianId, date));
+        return availableSlotService.getAvailableSlotsByDateForPatient(dietitianId, date);
     }
 }

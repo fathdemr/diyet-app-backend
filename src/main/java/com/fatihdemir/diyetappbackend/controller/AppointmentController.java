@@ -18,26 +18,26 @@ public class AppointmentController extends BaseController {
     private final AppointmentService appointmentService;
 
     @PostMapping("/exapi/patient/appointment")
-    public ResponseEntity<AppointmentResponse> createAppointment(@RequestBody @Valid AppointmentRequest request) {
-        return ResponseEntity.ok(appointmentService.createAppointment(getCurrentUserId(), request));
+    public AppointmentResponse createAppointment(@RequestBody @Valid AppointmentRequest request) {
+        return appointmentService.createAppointment(getCurrentUserId(), request);
     }
 
-    @PutMapping("/exapi/dietitian/appointment/approve/{appointmentId}")
+    @PatchMapping("/exapi/dietitian/appointment/approve/{appointmentId}")
     public ResponseEntity<Void> approveAppointment(@PathVariable UUID appointmentId) {
         appointmentService.approveAppointment(getCurrentUserId(), appointmentId);
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/exapi/dietitian/appointment/reject/{appointmentId}")
+    @PatchMapping("/exapi/dietitian/appointment/reject/{appointmentId}")
     public ResponseEntity<Void> rejectAppointment(@PathVariable UUID appointmentId,
-                                                   @RequestBody @Valid AppointmentReasonRequest request) {
+                                                  @RequestBody @Valid AppointmentReasonRequest request) {
         appointmentService.rejectAppointment(getCurrentUserId(), appointmentId, request.reason());
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/exapi/patient/appointment/cancel/{appointmentId}")
+    @PatchMapping("/exapi/patient/appointment/cancel/{appointmentId}")
     public ResponseEntity<Void> cancelAppointment(@PathVariable UUID appointmentId,
-                                                   @RequestBody @Valid AppointmentReasonRequest request) {
+                                                  @RequestBody @Valid AppointmentReasonRequest request) {
         appointmentService.cancelAppointment(getCurrentUserId(), appointmentId, request.reason());
         return ResponseEntity.noContent().build();
     }

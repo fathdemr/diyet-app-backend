@@ -25,25 +25,25 @@ public class DietitianSlotController extends BaseController {
     private final AvailableSlotService availableSlotService;
 
     @PostMapping
-    public ResponseEntity<AvailableSlotResponse> createAvailableSlot(@RequestBody @Valid AvailableSlotRequest request) {
-        return ResponseEntity.ok(availableSlotService.createAvailableSlot(getCurrentUserId(), request));
+    public AvailableSlotResponse createAvailableSlot(@RequestBody @Valid AvailableSlotRequest request) {
+        return availableSlotService.createAvailableSlot(getCurrentUserId(), request);
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<List<AvailableSlotResponse>> createAvailableSlots(@RequestBody @Valid List<AvailableSlotRequest> requests) {
-        return ResponseEntity.ok(availableSlotService.createAvailableSlots(getCurrentUserId(), requests));
+    public List<AvailableSlotResponse> createAvailableSlots(@RequestBody @Valid List<AvailableSlotRequest> requests) {
+        return availableSlotService.createAvailableSlots(getCurrentUserId(), requests);
     }
 
     @GetMapping
-    public ResponseEntity<Page<AvailableSlotResponse>> getMySlots(
+    public Page<AvailableSlotResponse> getMySlots(
             @PageableDefault(size = 20, sort = "date", direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(availableSlotService.getDietitianSlots(getCurrentUserId(), pageable));
+        return availableSlotService.getDietitianSlots(getCurrentUserId(), pageable);
     }
 
     @GetMapping("/date/{date}")
-    public ResponseEntity<List<AvailableSlotResponse>> getMySlotsByDate(
+    public List<AvailableSlotResponse> getMySlotsByDate(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(availableSlotService.getDietitianSlotsByDate(getCurrentUserId(), date));
+        return availableSlotService.getDietitianSlotsByDate(getCurrentUserId(), date);
     }
 
     @DeleteMapping("/{slotId}")

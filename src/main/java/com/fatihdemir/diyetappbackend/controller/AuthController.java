@@ -21,13 +21,13 @@ public class AuthController extends BaseController {
     // ── Public API (/api/**) ─────────────────────────────────────────────────
 
     @PostMapping("/api/auth/login/dietitian")
-    public ResponseEntity<AuthResponse> dietitianLogin(@Valid @RequestBody OAuthRequest request) {
-        return ResponseEntity.ok(authService.oauthLogin(request, Role.DIETITIAN));
+    public AuthResponse dietitianLogin(@Valid @RequestBody OAuthRequest request) {
+        return authService.oauthLogin(request, Role.DIETITIAN);
     }
 
     @PostMapping("/api/auth/login/patient")
-    public ResponseEntity<AuthResponse> patientLogin(@Valid @RequestBody OAuthRequest request) {
-        return ResponseEntity.ok(authService.oauthLogin(request, Role.PATIENT));
+    public AuthResponse patientLogin(@Valid @RequestBody OAuthRequest request) {
+        return authService.oauthLogin(request, Role.PATIENT);
     }
 
     // ── Private API (/exapi/**) ──────────────────────────────────────────────

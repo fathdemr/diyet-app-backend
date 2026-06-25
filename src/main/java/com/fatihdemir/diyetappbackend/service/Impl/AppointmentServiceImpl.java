@@ -36,7 +36,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new SlotAlreadyBookedException(request.slotId());
         }
 
-        Patient patient = patientRepository.findByUser_Id(userId)
+        Patient patient = patientRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Hasta"));
 
         slot.setBooked(true);
