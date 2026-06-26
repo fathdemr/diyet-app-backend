@@ -8,6 +8,9 @@ import com.fatihdemir.diyetappbackend.entity.Patient;
 import com.fatihdemir.diyetappbackend.exception.AccessForbiddenException;
 import com.fatihdemir.diyetappbackend.exception.ResourceNotFoundException;
 import com.fatihdemir.diyetappbackend.exception.SlotAlreadyBookedException;
+import com.fatihdemir.diyetappbackend.kafka.event.AppointmentEvent;
+import com.fatihdemir.diyetappbackend.kafka.event.AppointmentEventType;
+import com.fatihdemir.diyetappbackend.kafka.producer.AppointmentEventProducer;
 import com.fatihdemir.diyetappbackend.repository.AppointmentRepository;
 import com.fatihdemir.diyetappbackend.repository.AvailableSlotRepository;
 import com.fatihdemir.diyetappbackend.repository.PatientRepository;
@@ -25,6 +28,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final AvailableSlotRepository availableSlotRepository;
     private final PatientRepository patientRepository;
+    private final AppointmentEventProducer eventProducer;
 
     @Override
     @Transactional
@@ -47,7 +51,22 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .dietitian(slot.getDietitian())
                 .build();
 
-        return AppointmentResponse.from(appointmentRepository.save(appointment));
+        Appointment saved = appointmentRepository.save(appointment);
+
+        eventProducer.publish(AppointmentEvent.of(
+                saved.getId(),
+                patient.getId(),
+                patient.getUser().getFullName(),
+                slot.getDietitian().getId(),
+                slot.getDietitian().getUser().getFullName(),
+                slot.getDate(),
+                slot.getStartTime(),
+                slot.getEndTime(),
+                AppointmentEventType.CREATED,
+                null
+        ));
+
+        return AppointmentResponse.from(saved);
     }
 
     @Override
@@ -61,6 +80,19 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         appointment.approve();
+
+        eventProducer.publish(AppointmentEvent.of(
+                appointment.getId(),
+                appointment.getPatient().getId(),
+                appointment.getPatient().getUser().getFullName(),
+                appointment.getDietitian().getId(),
+                appointment.getDietitian().getUser().getFullName(),
+                appointment.getSlot().getDate(),
+                appointment.getSlot().getStartTime(),
+                appointment.getSlot().getEndTime(),
+                AppointmentEventType.APPROVED,
+                null
+        ));
     }
 
     @Override
@@ -75,6 +107,19 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         appointment.reject(reason);
         appointment.getSlot().setBooked(false);
+
+        eventProducer.publish(AppointmentEvent.of(
+                appointment.getId(),
+                appointment.getPatient().getId(),
+                appointment.getPatient().getUser().getFullName(),
+                appointment.getDietitian().getId(),
+                appointment.getDietitian().getUser().getFullName(),
+                appointment.getSlot().getDate(),
+                appointment.getSlot().getStartTime(),
+                appointment.getSlot().getEndTime(),
+                AppointmentEventType.REJECTED,
+                reason
+        ));
     }
 
     @Override
@@ -89,6 +134,18 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         appointment.cancel(reason);
         appointment.getSlot().setBooked(false);
-    }
 
+        eventProducer.publish(AppointmentEvent.of(
+                appointment.getId(),
+                appointment.getPatient().getId(),
+                appointment.getPatient().getUser().getFullName(),
+                appointment.getDietitian().getId(),
+                appointment.getDietitian().getUser().getFullName(),
+                appointment.getSlot().getDate(),
+                appointment.getSlot().getStartTime(),
+                appointment.getSlot().getEndTime(),
+                AppointmentEventType.CANCELLED,
+                reason
+        ));
+    }
 }

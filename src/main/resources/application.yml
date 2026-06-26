@@ -24,6 +24,22 @@ spring:
       database: 1
       password: ${REDIS_PASSWORD:}
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:3.71.43.116:30699}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: diyet-app-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "com.fatihdemir.diyetappbackend.kafka.event"
+        spring.json.value.default.type: "com.fatihdemir.diyetappbackend.kafka.event.AppointmentEvent"
+
 jwt:
   private-key-path: certs/private.pem
   public-key-path: certs/public.pem
@@ -38,3 +54,8 @@ security:
     max-attempts: 5
     block-duration-minutes: 30
     window-minutes: 15
+
+kafka:
+  topics:
+    appointment-events: appointments-event
+    appointment-events-dlt: appointments-event-dlt
