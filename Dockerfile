@@ -1,11 +1,11 @@
 # Stage 1 — JAR'ı katmanlarına ayır
-FROM amazoncorretto:17-alpine AS builder
+FROM amazoncorretto:23-alpine AS builder
 WORKDIR /app
 COPY build/libs/*.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # Stage 2 — minimal alpine imajı, katmanları ayrı ayrı kopyala
-FROM amazoncorretto:17-alpine
+FROM amazoncorretto:23-alpine
 WORKDIR /app
 
 LABEL org.opencontainers.image.title="Diyet App Api" \
