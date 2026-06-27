@@ -42,6 +42,7 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
     implementation 'org.springframework.boot:spring-boot-starter-kafka'
     testImplementation 'org.springframework.boot:spring-boot-starter-kafka-test'
+    implementation 'com.resend:resend-java:+'
 }
 
 tasks.named('test') {

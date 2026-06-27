@@ -63,7 +63,9 @@ public class AppointmentServiceImpl implements AppointmentService {
                 slot.getStartTime(),
                 slot.getEndTime(),
                 AppointmentEventType.CREATED,
-                null
+                null,
+                appointment.getPatient().getUser().getEmail(),
+                appointment.getDietitian().getUser().getEmail()
         ));
 
         return AppointmentResponse.from(saved);
@@ -91,7 +93,9 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getSlot().getStartTime(),
                 appointment.getSlot().getEndTime(),
                 AppointmentEventType.APPROVED,
-                null
+                null,
+                appointment.getPatient().getUser().getEmail(),
+                appointment.getDietitian().getUser().getEmail()
         ));
     }
 
@@ -118,7 +122,9 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getSlot().getStartTime(),
                 appointment.getSlot().getEndTime(),
                 AppointmentEventType.REJECTED,
-                reason
+                reason,
+                appointment.getPatient().getUser().getEmail(),
+                appointment.getDietitian().getUser().getEmail()
         ));
     }
 
@@ -145,7 +151,9 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getSlot().getStartTime(),
                 appointment.getSlot().getEndTime(),
                 AppointmentEventType.CANCELLED,
-                reason
+                reason,
+                appointment.getPatient().getUser().getEmail(),
+                appointment.getDietitian().getUser().getEmail()
         ));
     }
 }

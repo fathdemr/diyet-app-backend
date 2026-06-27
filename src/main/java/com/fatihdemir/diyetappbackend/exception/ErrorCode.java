@@ -30,6 +30,12 @@ public enum ErrorCode {
     // ── Validation ────────────────────────────────────────────────────────────
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "Giriş doğrulama hatası"),
 
+    // ── Notification ───────────────────────────────────────────────────────────────
+
+    NOTIFICATION_ERROR(HttpStatus.BAD_REQUEST, "Mail gönderimi hatası"),
+
+    NO_CHANNEL_AVAILABLE(HttpStatus.BAD_REQUEST, "No channel supports notification type:"),
+
     // ── Generic ───────────────────────────────────────────────────────────────
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Beklenmedik bir hata oluştu");
 

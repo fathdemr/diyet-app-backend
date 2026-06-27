@@ -16,6 +16,8 @@ public record AppointmentEvent(
         LocalTime endTime,
         AppointmentEventType eventType,
         String reason,
+        String patientEmail,
+        String dietitianEmail,
         Instant occurredAt
 ) {
     public static AppointmentEvent of(
@@ -28,13 +30,15 @@ public record AppointmentEvent(
             LocalTime startTime,
             LocalTime endTime,
             AppointmentEventType eventType,
-            String reason
+            String reason,
+            String patientEmail,
+            String dietitianEmail
     ) {
         return new AppointmentEvent(
                 appointmentId, patientId, patientName,
                 dietitianId, dietitianName,
                 appointmentDate, startTime, endTime,
-                eventType, reason,
+                eventType, reason, patientEmail, dietitianEmail,
                 Instant.now()
         );
     }

@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -26,6 +27,8 @@ public interface AvailableSlotRepository extends JpaRepository<AvailableSlot, UU
     // existing.startTime < newSlot.endTime AND existing.endTime > newSlot.startTime
     boolean existsByDietitianIdAndDateAndStartTimeBeforeAndEndTimeAfter(
             UUID dietitianId, LocalDate date, LocalTime endTime, LocalTime startTime);
+
+    List<AvailableSlot> findByDietitianIdAndDateIn(UUID dietitianId, Set<LocalDate> dates);
 
     Page<AvailableSlot> findByDietitianId(UUID dietitianId, Pageable pageable);
 

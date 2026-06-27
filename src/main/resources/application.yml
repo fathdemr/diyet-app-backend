@@ -1,4 +1,28 @@
+server:
+  port: 5076
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
   application:
     name: diyet-app-backend
 
@@ -12,10 +36,13 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
 
   data:
     redis:
@@ -59,3 +86,6 @@ kafka:
   topics:
     appointment-events: appointments-event
     appointment-events-dlt: appointments-event-dlt
+
+resend:
+  api-key: ${RESEND_API_KEY}

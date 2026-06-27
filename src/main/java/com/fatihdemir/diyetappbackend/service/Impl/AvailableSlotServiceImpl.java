@@ -15,14 +15,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AvailableSlotServiceImpl implements AvailableSlotService {
 
-    private static final int MAX_BATCH_SIZE = 50;
+    private static final int MAX_DELETE_BATCH_SIZE = 50;
+    private static final int DB_BATCH_INSERT_SIZE = 100;
 
     private final AvailableSlotRepository availableSlotRepository;
     private final DietitianRepository dietitianRepository;
@@ -49,16 +53,15 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
 
     @Transactional
     public List<AvailableSlotResponse> createAvailableSlots(UUID userId, List<AvailableSlotRequest> requests) {
-        if (requests.size() > MAX_BATCH_SIZE) {
-            throw new BatchSizeExceededException(MAX_BATCH_SIZE);
-        }
-
         requests.forEach(this::validateSlotTimes);
 
         Dietitian dietitian = dietitianRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Diyetisyen"));
 
-        requests.forEach(req -> checkOverlap(dietitian.getId(), req));
+        // N+1 yerine tek sorguda ilgili tarihlerdeki mevcut slotları çek, memory'de kontrol et
+        Set<LocalDate> dates = requests.stream().map(AvailableSlotRequest::date).collect(Collectors.toSet());
+        List<AvailableSlot> existingSlots = availableSlotRepository.findByDietitianIdAndDateIn(dietitian.getId(), dates);
+        requests.forEach(req -> checkOverlapInMemory(req, existingSlots));
 
         List<AvailableSlot> slots = requests.stream()
                 .map(req -> AvailableSlot.builder()
@@ -69,8 +72,14 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
                         .build())
                 .toList();
 
-        availableSlotRepository.saveAll(slots);
-        return slots.stream()
+        // Listeyi 100'erli parçalara böl, her parçayı ayrı saveAll ile kaydet
+        List<AvailableSlot> saved = new ArrayList<>();
+        for (int i = 0; i < slots.size(); i += DB_BATCH_INSERT_SIZE) {
+            List<AvailableSlot> chunk = slots.subList(i, Math.min(i + DB_BATCH_INSERT_SIZE, slots.size()));
+            saved.addAll(availableSlotRepository.saveAll(chunk));
+        }
+
+        return saved.stream()
                 .map(AvailableSlotResponse::from)
                 .toList();
     }
@@ -119,8 +128,8 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
 
     @Transactional
     public void deleteAvailableSlots(UUID userId, List<UUID> slotIds) {
-        if (slotIds.size() > MAX_BATCH_SIZE) {
-            throw new BatchSizeExceededException(MAX_BATCH_SIZE);
+        if (slotIds.size() > MAX_DELETE_BATCH_SIZE) {
+            throw new BatchSizeExceededException(MAX_DELETE_BATCH_SIZE);
         }
 
         Dietitian dietitian = dietitianRepository.findByUserId(userId)
@@ -154,6 +163,16 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
     private void checkOverlap(UUID dietitianId, AvailableSlotRequest request) {
         boolean overlaps = availableSlotRepository.existsByDietitianIdAndDateAndStartTimeBeforeAndEndTimeAfter(
                 dietitianId, request.date(), request.endTime(), request.startTime());
+        if (overlaps) {
+            throw new SlotConflictException(request.startTime(), request.endTime());
+        }
+    }
+
+    private void checkOverlapInMemory(AvailableSlotRequest request, List<AvailableSlot> existingSlots) {
+        boolean overlaps = existingSlots.stream()
+                .anyMatch(existing -> existing.getDate().equals(request.date())
+                        && existing.getStartTime().isBefore(request.endTime())
+                        && existing.getEndTime().isAfter(request.startTime()));
         if (overlaps) {
             throw new SlotConflictException(request.startTime(), request.endTime());
         }
